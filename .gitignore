@@ -130,3 +130,5 @@ dist
 .pnp.*
 
 *storybook.log
+
+API/src/config/chilly-scout-854c73eff429.json
