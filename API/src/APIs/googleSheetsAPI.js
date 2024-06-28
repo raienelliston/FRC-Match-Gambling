@@ -1,4 +1,5 @@
 const { google } = require('googleapis');
+const { get } = require('../routes/routes');
 const { GoogleAuth } = google.auth;
 const sheets = google.sheets('v4');
 
@@ -17,6 +18,37 @@ async function getAuthToken() {
   });
   return auth
 }
+
+async function getSpreadSheet({ spreadsheetId }) {
+  const auth = await getAuthToken();
+  const res = await sheets.spreadsheets.get({
+    spreadsheetId,
+    auth,
+    key: 'AIzaSyBSK1wy2XRqyaGlKk_KTsWpKWahH0xLYdw'
+  });
+  return res;
+}
+
+async function createSheet({ spreadsheetId, title }) {
+  const auth = await getAuthToken();
+  const res = await sheets.spreadsheets.batchUpdate({
+    spreadsheetId,
+    auth,
+    resource: {
+      requests: [
+        {
+          addSheet: {
+            properties: {
+              title
+            }
+          }
+        }
+      ]
+    }
+  });
+  return res;
+}
+
 
 async function getSpreadSheet({ spreadsheetId }) {
   const auth = await getAuthToken();
@@ -106,16 +138,31 @@ async function createSpreadSheetTemplate( {spreadsheetId=null, sheetName, values
       console.log(err);
     });
   }
-  console.log(spreadsheetId);
+  console.log(values);
+  
+  data = await getSpreadSheet({ spreadsheetId })
+  // const sheetNames = await getSpreadSheet({ spreadsheetId }).data.sheets
+  console.log(data.data.sheets);
+  // const sheetNames = await getSpreadSheet({ spreadsheetId }).data.sheets.map(sheet => sheet.properties.title);
+
   values.forEach(element => {
-    const sheetName = element.sheetName;
-    const values = element.values;
-    appendSpreadSheetValues({spreadsheetId, sheetName, values})
+    if (data.data.sheets.find((sheet) => sheet.properties.title == element.sheetName) == undefined) {
+      createSheet({
+        spreadsheetId: spreadsheetId,
+        title: element.sheetName
+      });
+    }
+    appendSpreadSheetValues({
+      spreadsheetId: spreadsheetId,
+      sheetName: element.sheetName,
+      values: element.values
+    });
   });
 }
 
 module.exports = {
   getAuthToken,
+  createSheet,
   getSpreadSheet,
   getSpreadSheetValues,
   appendSpreadSheetValues,

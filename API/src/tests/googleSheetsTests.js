@@ -4,23 +4,46 @@ require('dotenv').config();
 const spreadsheetId = '1aWICfWZeuWS2pt_rL0ghrLDN75VqYjqK91IGZ4L9raY'
 const sheetName = 'Sheet2'
 const auth = googleSheets.getAuthToken();
-function main() {
-    googleSheets.appendSpreadSheetValues({
-        spreadsheetId, 
-        sheetName, 
-        values: [['test', 'test', 'test']]
-    }).then((res) => {
-        console.log(res);
-    });
 
-    googleSheets.updateSpreadSheetValues({
-        spreadsheetId,
-        sheetName,
-        values: [['test', 'test', 'test']],
-        cell: 'A7'
+const template = [
+    {
+        sheetName: 'Sheet1',
+        values: [
+            ['test', 'test', 'test'],
+            ['test', 'test', 'test'],
+            ['test', 'test', 'test']
+        ]
+    },
+    {
+        sheetName: 'Sheet2',
+        values: [
+            ['test', 'test', 'test'],
+            ['test', 'test', 'test'],
+            ['test', 'test', 'test']
+        ]
+    }, 
+    {
+        sheetName: 'Sheet3',
+        values: [
+            ['test', 'test', 'test'],
+            ['test', 'test', 'test'],
+            ['test', 'test', 'test']
+        ]
+    }
+]
+
+function main() {
+    googleSheets.createSpreadSheetTemplate({
+        spreadsheetId: spreadsheetId,
+        values: template
     }).then((res) => {
         console.log(res);
     });
+    // googleSheets.getSpreadSheet({
+    //     spreadsheetId: spreadsheetId
+    // }).then((res) => {
+    //     console.log(res.data.sheets);
+    // })
 }
 
 function createTemplate() {
