@@ -8,11 +8,18 @@ async function getAuthToken() {
   const auth = new GoogleAuth({
     scopes: SCOPES
   });
+  return auth;
+}
+
+async function getAuthToken() {
+  const auth = new GoogleAuth({
+    scopes: SCOPES
+  });
   const authToken = await auth.getClient();
   return authToken;
 }
 
-async function getSpreadSheet({spreadsheetId, auth}) {
+async function getSpreadSheet({ auth, spreadsheetId }) {
   const res = await sheets.spreadsheets.get({
     spreadsheetId,
     auth,
@@ -21,7 +28,7 @@ async function getSpreadSheet({spreadsheetId, auth}) {
   return res;
 }
 
-async function getSpreadSheetValues({spreadsheetId, auth, sheetName}) {
+async function getSpreadSheetValues({ auth, spreadsheetId, sheetName }) {
 
   console.log(sheetName)
 
@@ -34,8 +41,7 @@ async function getSpreadSheetValues({spreadsheetId, auth, sheetName}) {
   return res;
 }
 
-async function appendSpreadSheetValues({spreadsheetId, auth, sheetName, values}) {
-  
+async function appendSpreadSheetValues({ auth, spreadsheetId, sheetName, values }) {
   const res = await sheets.spreadsheets.values.append({
     spreadsheetId,
     auth,

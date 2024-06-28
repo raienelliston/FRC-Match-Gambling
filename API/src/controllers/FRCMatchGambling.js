@@ -1,6 +1,8 @@
 const axios = require('axios');
 require('dotenv').config();
 
+auth = process.env.TBA_AUTH_KEY;
+
 exports.getFrcMatchGambling = async (req, res) => {
     try {
         const response = await axios.get(`${process.env.API_URL}/frcMatchGambling`);
