@@ -78,10 +78,47 @@ async function updateSpreadSheetValues({ spreadsheetId, sheetName, values, cell=
   return res;
 }
 
+async function createSpreadSheetTemplate( {spreadsheetId=null, sheetName, values} ) {
+  if (spreadsheetId == null) {
+    const auth = await getAuthToken();
+    const service = google.sheets({ version: 'v4', auth });
+    const res = await service.spreadsheets.create({
+      resource: {
+        properties: {
+          title: sheetName
+        },
+        sheets: [
+          {
+            properties: {
+              title: sheetName,
+              gridProperties: {
+                rowCount: 100,
+                columnCount: 26
+              }
+            }
+          }
+        ]
+      }
+    }).then((response) => {
+      console.log(response);
+      spreadsheetId = response.data.spreadsheetId;
+    }).catch((err) => {
+      console.log(err);
+    });
+  }
+  console.log(spreadsheetId);
+  values.forEach(element => {
+    const sheetName = element.sheetName;
+    const values = element.values;
+    appendSpreadSheetValues({spreadsheetId, sheetName, values})
+  });
+}
+
 module.exports = {
   getAuthToken,
   getSpreadSheet,
   getSpreadSheetValues,
   appendSpreadSheetValues,
-  updateSpreadSheetValues
+  updateSpreadSheetValues,
+  createSpreadSheetTemplate
 }
