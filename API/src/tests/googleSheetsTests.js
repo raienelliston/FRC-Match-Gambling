@@ -6,10 +6,18 @@ const sheetName = 'Sheet1'
 const auth = googleSheets.getAuthToken();
 function main() {
     googleSheets.appendSpreadSheetValues({
-        auth,
         spreadsheetId, 
         sheetName, 
         values: [['test', 'test', 'test']]
+    }).then((res) => {
+        console.log(res);
+    });
+
+    googleSheets.updateSpreadSheetValues({
+        spreadsheetId,
+        sheetName,
+        values: [['test', 'test', 'test']],
+        cell: 'A7'
     }).then((res) => {
         console.log(res);
     });

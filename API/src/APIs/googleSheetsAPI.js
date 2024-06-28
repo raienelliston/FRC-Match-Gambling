@@ -2,7 +2,7 @@ const { google } = require('googleapis');
 const { GoogleAuth } = google.auth;
 const sheets = google.sheets('v4');
 
-const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
+const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
 
 async function getAuthToken() {
   const auth = new GoogleAuth({
@@ -15,11 +15,11 @@ async function getAuthToken() {
   const auth = new GoogleAuth({
     scopes: SCOPES
   });
-  const authToken = await auth.getClient();
-  return authToken;
+  return auth
 }
 
-async function getSpreadSheet({ auth, spreadsheetId }) {
+async function getSpreadSheet({ spreadsheetId }) {
+  const auth = await getAuthToken();
   const res = await sheets.spreadsheets.get({
     spreadsheetId,
     auth,
@@ -28,10 +28,8 @@ async function getSpreadSheet({ auth, spreadsheetId }) {
   return res;
 }
 
-async function getSpreadSheetValues({ auth, spreadsheetId, sheetName }) {
-
-  console.log(sheetName)
-
+async function getSpreadSheetValues({ spreadsheetId, sheetName }) {
+  const auth = await getAuthToken();
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId,
     auth,
@@ -41,25 +39,49 @@ async function getSpreadSheetValues({ auth, spreadsheetId, sheetName }) {
   return res;
 }
 
-async function appendSpreadSheetValues({ auth, spreadsheetId, sheetName, values }) {
-  const res = await sheets.spreadsheets.values.append({
+async function appendSpreadSheetValues({ spreadsheetId, sheetName, values }) {
+  const auth = await getAuthToken();
+  const service = google.sheets({ version: 'v4', auth });
+
+  const res = await service.spreadsheets.values.append({
     spreadsheetId,
-    auth,
     range: sheetName,
+    valueInputOption: 'USER_ENTERED',
+    insertDataOption: 'INSERT_ROWS',
+    resource: {
+      values
+    }
+  }).then ((response) => {
+    console.log(response);
+  }).catch((err) => {
+    console.log(err);
+  });
+  return res;
+}
+
+async function updateSpreadSheetValues({ spreadsheetId, sheetName, values, cell='A1' }) {
+  const auth = await getAuthToken();
+  const service = google.sheets({ version: 'v4', auth });
+
+  const res = await service.spreadsheets.values.update({
+    spreadsheetId,
+    range: sheetName + '!' + cell,
     valueInputOption: 'USER_ENTERED',
     resource: {
       values
     }
-  }).then((response) => {  }).catch((err) => { return(err); });
-
-  // console.log(res);
+  }).then ((response) => {
+    console.log(response);
+  }).catch((err) => {
+    console.log(err);
+  });
   return res;
 }
-
 
 module.exports = {
   getAuthToken,
   getSpreadSheet,
   getSpreadSheetValues,
-  appendSpreadSheetValues
+  appendSpreadSheetValues,
+  updateSpreadSheetValues
 }
