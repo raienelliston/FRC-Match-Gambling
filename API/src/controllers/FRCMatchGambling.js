@@ -1,16 +1,37 @@
-const axios = require('axios');
+const express = require('express');
+const app = express();
+const googleSheetAPI = require('../APIs/googleSheetsAPI');
 require('dotenv').config();
 
-auth = process.env.TBA_AUTH_KEY;
+exports.status = (req, res) => {
+    res.status(200).send('API is working');
+}
 
-exports.getFrcMatchGambling = async (req, res) => {
-    try {
-        const response = await axios.get(`${process.env.API_URL}/frcMatchGambling`);
-        res.status(200).json(response.data);
-    } catch (error) {
-        res.status(500).json(error);
-    }
-};
+exports.getBalance = async (req, res) => {
+    res.status(200).send('API is working');
+}
 
-exports.get
+exports.placeBet = async (req, res) => {
+    res.status(200).send('API is working');
+}
+
+exports.updateBalance = async (req, res) => {
+    res.status(200).send('API is working');
+}
+
+exports.getEventList = async (req, res) => {
+    res.status(200).send('API is working');
+}
+
+exports.getEventMatches = async (req, res) => {
+    res.status(200).send('API is working');
+}
+
+exports.getMatchData = async (req, res) => {
+    res.status(200).send('API is working');
+}
+
+exports.getTeamData = async (req, res) => {
+    res.status(200).send('API is working');
+}
 
