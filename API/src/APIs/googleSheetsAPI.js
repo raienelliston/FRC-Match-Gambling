@@ -49,6 +49,16 @@ async function createSheet({ spreadsheetId, title }) {
   return res;
 }
 
+async function getSpreadSheetValues({ spreadsheetId, sheetName }) {
+  const auth = await getAuthToken();
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: spreadsheetId,
+    auth,
+    range: sheetName,
+    key: 'AIzaSyBSK1wy2XRqyaGlKk_KTsWpKWahH0xLYdw'
+  });
+  return res;
+}
 
 async function getSpreadSheet({ spreadsheetId }) {
   const auth = await getAuthToken();
@@ -110,40 +120,39 @@ async function updateSpreadSheetValues({ spreadsheetId, sheetName, values, cell=
   return res;
 }
 
-async function createSpreadSheetTemplate( {spreadsheetId=null, sheetName, values} ) {
-  if (spreadsheetId == null) {
-    const auth = await getAuthToken();
-    const service = google.sheets({ version: 'v4', auth });
-    const res = await service.spreadsheets.create({
-      resource: {
-        properties: {
-          title: sheetName
-        },
-        sheets: [
-          {
-            properties: {
-              title: sheetName,
-              gridProperties: {
-                rowCount: 100,
-                columnCount: 26
-              }
-            }
-          }
-        ]
-      }
-    }).then((response) => {
-      console.log(response);
-      spreadsheetId = response.data.spreadsheetId;
-    }).catch((err) => {
-      console.log(err);
-    });
-  }
-  console.log(values);
+function createSpreadSheetTemplate( {spreadsheetId=null, sheetName, values} ) {
+  // DEV ONLY, REMOVE IN PRODUCTION. NEED TO ADD ABILITY TO SHARE SHEET WITH OTHERS
+  // if (spreadsheetId == null) {
+  //   const auth = await getAuthToken();
+  //   const service = google.sheets({ version: 'v4', auth });
+  //   const res = await service.spreadsheets.create({
+  //     resource: {
+  //       properties: {
+  //         title: sheetName
+  //       },
+  //       sheets: [
+  //         {
+  //           properties: {
+  //             title: sheetName,
+  //             gridProperties: {
+  //               rowCount: 100,
+  //               columnCount: 26
+  //             }
+  //           }
+  //         }
+  //       ]
+  //     }
+  //   }).then((response) => {
+  //     console.log(response);
+  //     spreadsheetId = response.data.spreadsheetId;
+  //   }).catch((err) => {
+  //     console.log(err);
+  //   });
+  // }
+
   
-  data = await getSpreadSheet({ spreadsheetId })
-  // const sheetNames = await getSpreadSheet({ spreadsheetId }).data.sheets
+  data = getSpreadSheet({ spreadsheetId })
   console.log(data.data.sheets);
-  // const sheetNames = await getSpreadSheet({ spreadsheetId }).data.sheets.map(sheet => sheet.properties.title);
 
   values.forEach(element => {
     if (data.data.sheets.find((sheet) => sheet.properties.title == element.sheetName) == undefined) {

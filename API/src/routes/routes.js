@@ -3,5 +3,6 @@ const router = express.Router();
 const API = require('../controllers/FRCMatchGambling');
 
 router.get('/status', API.status);
+router.get('/getBalance', API.getBalance);
 
 module.exports = router;

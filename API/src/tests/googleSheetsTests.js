@@ -33,17 +33,23 @@ const template = [
 ]
 
 function main() {
-    googleSheets.createSpreadSheetTemplate({
-        spreadsheetId: spreadsheetId,
-        values: template
-    }).then((res) => {
-        console.log(res);
-    });
+    // googleSheets.createSpreadSheetTemplate({
+    //     spreadsheetId: spreadsheetId,
+    //     values: template
+    // }).then((res) => {
+    //     console.log(res);
+    // });
     // googleSheets.getSpreadSheet({
     //     spreadsheetId: spreadsheetId
     // }).then((res) => {
     //     console.log(res.data.sheets);
     // })
+    googleSheets.getSpreadSheetValues({
+        spreadsheetId: spreadsheetId,
+        sheetName: sheetName
+    }).then((res) => {
+        console.log(res.data.values);
+    });
 }
 
 function createTemplate() {
