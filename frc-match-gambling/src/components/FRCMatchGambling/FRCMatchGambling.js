@@ -9,6 +9,29 @@ const Wrapper = styled.div`
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    height: 100vh;
+    width: 100vw;
+    background-color: #282c34;
+`;
+
+const HeaderWrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 10vh;
+    width: 100vw;
+    background-color: #282c34;
+`;
+
+const BodyWrapper = styled.div`
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: 90vh;
+    width: 100vw;
+    background-color: #282c34;
 `;
 
 export function FRCMatchGambling() {
@@ -16,6 +39,7 @@ export function FRCMatchGambling() {
     const [matchList, setMatchList] = useState([]);
     const [match, setMatch] = useState({});
     const [bet, setBet] = useState({});
+    const [user, setUser] = useState("");
 
     const update = () => {
         const matchListUpdate = fetch(api + '/matches'
@@ -60,9 +84,11 @@ export function FRCMatchGambling() {
     }
 
     const Header = () => {
+        console.log(balance)
         return (
             <div>
                 <h1>FRC Match Gambling</h1>
+                
             </div>
         )
     }
@@ -100,13 +126,42 @@ export function FRCMatchGambling() {
         )
     }
 
+    const Login = () => {
+        return (
+            <div>
+                Login
+            </div>
+        )
+    }
+
+    if (user === undefined) {
+        if (localStorage.getItem('user') !== undefined) {
+            setUser(localStorage.getItem('user'));
+        }
+
+        function login() {
+            setUser("user");
+            localStorage.setItem('user', 'user');
+        }
+
+        return (
+            <Wrapper>
+                <Login />
+            </Wrapper>
+        )
+    }
+
     return (
-        <Wrapper >
+    <Wrapper>
+        <HeaderWrapper>
             <Header />
+        </HeaderWrapper>
+        <BodyWrapper >
             <Matches />
             <MatchBets />
             <Leaderboard />
             <BetPlacer />
-        </Wrapper >
+        </BodyWrapper >
+    </Wrapper>
     )
 }

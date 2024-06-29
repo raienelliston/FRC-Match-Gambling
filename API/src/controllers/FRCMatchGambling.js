@@ -3,6 +3,7 @@ const app = express();
 const googleSheetAPI = require('../APIs/googleSheetsAPI');
 const TBA = require('../APIs/TBAApi');
 const { google } = require('googleapis');
+const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
 template = [
@@ -121,6 +122,59 @@ exports.getBalance = (req, res) => {
             res.status(404).send('User not found');
         }
     })  
+}
+
+exports.createAccount = async (req, res) => {
+    googleSheetAPI.appendSpreadSheetValues({
+        spreadsheetId: spreadsheetId,
+        sheetName: 'UserData',
+        values: [
+            [uuidv4(), req.body.username, req.body.password]
+        ]
+    }).then((response) => {
+        res.status(200).send('Account created');
+    }).catch((err) => {
+        res.status(400).send('Error creating account');
+    });
+}
+
+exports.login = async (req, res) => {
+    googleSheetAPI.getSpreadSheetValues({
+        spreadsheetId: spreadsheetId,
+        sheetName: 'UserData'
+    }).then((response) => {
+        const users = response.data.values;
+        users.forEach(user => {
+            if (user[1] == req.body.username && user[2] == req.body.password) {
+                res.status(200).send(user[0]);
+            }
+        });
+        res.status(404).send('User not found');
+    }).catch((err) => {
+        res.status(400).send('Error logging in');
+    });
+}
+
+exports.giveBalance = async (req, res) => {
+    googleSheetAPI.getSpreadSheetValues({
+        spreadsheetId: spreadsheetId,
+        sheetName: 'UserData'
+    }).then((response) => {
+        const users = response.data.values;
+        users.forEach(user => {
+            if (user[0] == req.body.username) {
+                googleSheetAPI.updateSpreadSheetValues({
+                    spreadsheetId: spreadsheetId,
+                    sheetName: 'UserData',
+                    range: `B${users.indexOf(user) + 2}`,
+                    values: [[parseInt(user[1]) + parseInt(req.body.amount)]]
+                });
+                res.status(200).send('Balance updated');
+            }
+        });
+    }).catch((err) => {
+        res.status(400).send('Error updating balance');
+    });
 }
 
 exports.placeBet = async (req, res) => {
