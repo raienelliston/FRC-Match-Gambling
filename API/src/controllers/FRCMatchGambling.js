@@ -10,7 +10,7 @@ template = [
     {
         sheetName: 'UserData',
         values: [
-            ['Username', 'Balance']
+            ['UserID', 'Username', 'Password', 'Balance']
         ]
     },
     {

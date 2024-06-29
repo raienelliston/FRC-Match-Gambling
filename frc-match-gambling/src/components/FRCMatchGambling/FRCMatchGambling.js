@@ -34,12 +34,23 @@ const BodyWrapper = styled.div`
     background-color: #282c34;
 `;
 
+const LoginWrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+    background-color: #282c34;
+    z-index: 1;
+`;
+
 export function FRCMatchGambling() {
     const [balance, setBalance] = useState(0);
     const [matchList, setMatchList] = useState([]);
     const [match, setMatch] = useState({});
     const [bet, setBet] = useState({});
-    const [user, setUser] = useState("");
+    const [user, setUser] = ("");
 
     const update = () => {
         const matchListUpdate = fetch(api + '/matches'
@@ -77,10 +88,6 @@ export function FRCMatchGambling() {
                 setMatch(data);
             }
         })
-    }
-
-    if (matchList.length === 0) {
-        update();
     }
 
     const Header = () => {
@@ -125,30 +132,59 @@ export function FRCMatchGambling() {
             </div>
         )
     }
-
     const Login = () => {
+        const [ password, setPassword ] = useState("");
+        const [ username, setUsername ] = useState("");
+
+        const handleCreateAccount = () => {
+            fetch(api + '/create', {
+                method: 'POST',
+                body: JSON.stringify({username: username, password: password})
+            }).then(data => {
+                if (data.status !== 200) {
+                    throw new Error('Failed to fetch data');
+                } else {
+                    setUser(data);
+                    localStorage.setItem('user', data)
+                }
+            })
+        }
+
+        const handleLogin = () => {
+            fetch(api + '/login', {
+                method: 'POST',
+                body: JSON.stringify({username: username, password: password})
+            }).then(data => {
+                if (data.status !== 200) {
+                    throw new Error('Failed to fetch data');
+                } else {
+                    setUser(data);
+                    localStorage.setItem('user', data);
+                }
+            })
+        }
         return (
-            <div>
-                Login
-            </div>
+            <LoginWrapper>
+                <h1>Login</h1>
+                <input type="text" placeholder="Username" onChange={(e) => setUsername(e.target.value)} />
+                <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
+                <button onClick={handleLogin}>Login</button>
+                <button onClick={handleCreateAccount}>Create Account</button>
+            </LoginWrapper>
         )
     }
-
-    if (user === undefined) {
-        if (localStorage.getItem('user') !== undefined) {
-            setUser(localStorage.getItem('user'));
-        }
-
-        function login() {
-            setUser("user");
-            localStorage.setItem('user', 'user');
-        }
-
+    console.log(user)
+    
+    if (user === undefined || user === "" || user === null) {
         return (
             <Wrapper>
                 <Login />
             </Wrapper>
         )
+    }
+
+    if (matchList.length === 0) {
+        update();
     }
 
     return (
