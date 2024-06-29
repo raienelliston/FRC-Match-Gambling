@@ -151,12 +151,12 @@ async function createSpreadSheetTemplate( {spreadsheetId=null, sheetName, values
   // }
 
   
-  data = await getSpreadSheet({ spreadsheetId }).data.sheets
+  data = await (await getSpreadSheet({ spreadsheetId })).data.sheets
   console.log(data);
 
-  values.forEach(element => {
+  for (const element of values) {
     if (data.find((sheet) => sheet.properties.title == element.sheetName) == undefined) {
-      createSheet({
+      await createSheet({
         spreadsheetId: spreadsheetId,
         title: element.sheetName
       });
@@ -166,7 +166,7 @@ async function createSpreadSheetTemplate( {spreadsheetId=null, sheetName, values
       sheetName: element.sheetName,
       values: element.values
     });
-  });
+  };
 }
 
 module.exports = {

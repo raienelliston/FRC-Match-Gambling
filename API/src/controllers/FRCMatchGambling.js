@@ -1,6 +1,8 @@
 const express = require('express');
 const app = express();
 const googleSheetAPI = require('../APIs/googleSheetsAPI');
+const TBA = require('../APIs/TBAApi');
+const { google } = require('googleapis');
 require('dotenv').config();
 
 template = [
@@ -37,6 +39,7 @@ template = [
 ]
 
 const spreadsheetId = '1aWICfWZeuWS2pt_rL0ghrLDN75VqYjqK91IGZ4L9raY';
+const eventKey = process.env.EVENT_KEY;
 
 const getUserData = async () => {
     const data = await googleSheetAPI.getSpreadSheetValues({
@@ -76,19 +79,37 @@ exports.getBalance = async (req, res) => {
 }
 
 exports.placeBet = async (req, res) => {
-    res.status(200).send('API is working');
+    googleSheetAPI.appendSpreadSheetValues({
+        spreadsheetId: spreadsheetId,
+        sheetName: 'Bet History',
+        values: [
+            [req.body.username, req.body.matchID, req.body.betAmount, req.body.betTeam, 'Pending']
+        ]
+    }).then((response) => {
+        res.status(200).send('Bet placed');
+    }).catch((err) => {
+        res.status(400).send('Error placing bet');
+    });
 }
 
 exports.updateBalance = async (req, res) => {
     res.status(200).send('API is working');
 }
 
-exports.getEventList = async (req, res) => {
-    res.status(200).send('API is working');
-}
-
 exports.getEventMatches = async (req, res) => {
-    res.status(200).send('API is working');
+    console.log(eventKey)
+    TBA.getEventMatches( {
+        eventKey: eventKey
+    }).then((response) => {
+        const matchData = []
+        for (const match of response) {
+            matchData.push([match.key, match.predicted_time, match.actual_time, match.winning_alliance, match.alliances.red.team_keys, match.alliances.blue.team_keys]);
+        }
+        console.log(matchData);
+        res.status(200).send(matchData);
+    }).catch((err) => {
+        res.status(400).send('Error getting event matches');
+    })
 }
 
 exports.getMatchData = async (req, res) => {
