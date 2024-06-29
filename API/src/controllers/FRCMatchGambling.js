@@ -41,6 +41,50 @@ template = [
 const spreadsheetId = '1aWICfWZeuWS2pt_rL0ghrLDN75VqYjqK91IGZ4L9raY';
 const eventKey = process.env.EVENT_KEY;
 
+function updateBets() {
+    console.log('Updating bets')
+    googleSheetAPI.getSpreadSheetValues({
+        spreadsheetId: spreadsheetId,
+        sheetName: 'Bet History'
+    }).then((response) => {
+        const bets = response.data.values;
+        bets.forEach(bet => {
+            if (bet[4] == 'Pending') {
+                TBA.getMatchData( {
+                    matchKey: bet[1]
+                }).then((response) => {
+                    if (response.winning_alliance != null) {
+                        if (response.winning_alliance == bet[3]) {
+                            googleSheetAPI.getSpreadSheetValues({
+                                spreadsheetId: spreadsheetId,
+                                sheetName: 'UserData'
+                            }).then((response) => {
+                                const users = response.data.values;
+                                users.forEach(user => {
+                                    if (user[0] == bet[0]) {
+                                        googleSheetAPI.updateSpreadSheetValues({
+                                            spreadsheetId: spreadsheetId,
+                                            sheetName: 'UserData',
+                                            range: `B${users.indexOf(user) + 2}`,
+                                            values: [[parseInt(user[1]) + parseInt(bet[2])]]
+                                        });
+                                    }
+                                });
+                            });
+                        }
+                        googleSheetAPI.updateSpreadSheetValues({
+                            spreadsheetId: spreadsheetId,
+                            sheetName: 'Bet History',
+                            range: `E${bets.indexOf(bet) + 2}`,
+                            values: [['Complete']]
+                        });
+                    }
+                });
+            }
+        });
+    });
+}
+
 const getUserData = async () => {
     const data = await googleSheetAPI.getSpreadSheetValues({
         spreadsheetId: spreadsheetId,
@@ -61,7 +105,8 @@ exports.status = (req, res) => {
     res.status(200).send('API is working');
 }
 
-exports.getBalance = async (req, res) => {
+exports.getBalance = (req, res) => {
+    updateBets();
     let found = false;
     getUserData().then(data => {
         console.log(data);
@@ -92,10 +137,6 @@ exports.placeBet = async (req, res) => {
     });
 }
 
-exports.updateBalance = async (req, res) => {
-    res.status(200).send('API is working');
-}
-
 exports.getEventMatches = async (req, res) => {
     console.log(eventKey)
     TBA.getEventMatches( {
@@ -113,10 +154,28 @@ exports.getEventMatches = async (req, res) => {
 }
 
 exports.getMatchData = async (req, res) => {
-    res.status(200).send('API is working');
+    TBA.getMatchData( {
+        matchKey: req.body.matchKey
+    }).then((response) => {
+        console.log(response)
+        res.status(200).send(response);
+    }).catch((err) => {
+        res.status(400).send('Error getting match data');
+    })
 }
 
 exports.getTeamData = async (req, res) => {
-    res.status(200).send('API is working');
+    TBA.getEventTeams( {
+        eventKey: eventKey
+    }).then((response) => {
+        response.forEach(team => {
+            if (team.key == req.body.teamKey) {
+                res.status(200).send(team);
+            }
+        });
+    }).catch((err) => {
+        console.log(err);
+        res.status(400).send('Error getting team data');
+    })
 }
 
