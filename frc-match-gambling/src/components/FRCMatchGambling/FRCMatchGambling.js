@@ -50,7 +50,7 @@ export function FRCMatchGambling() {
     const [matchList, setMatchList] = useState([]);
     const [match, setMatch] = useState({});
     const [bet, setBet] = useState({});
-    const [user, setUser] = ("");
+    const [user, setUser] = useState("");
 
     const update = () => {
         const matchListUpdate = fetch(api + '/matches'
@@ -136,17 +136,19 @@ export function FRCMatchGambling() {
         const [ password, setPassword ] = useState("");
         const [ username, setUsername ] = useState("");
         const handleCreateAccount = () => {
-            fetch(api + '/create', {
+            fetch(api + '/accounts/create', {
                 method: 'POST',
                 mode: 'cors',
-                body: JSON.stringify({username: username, password: password}),
                 headers: {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': 'http://localhost:5000/api'
-                }
+                    'Access-Control-Allow-Origin': "http://localhost:5000"
+                },
+                body: JSON.stringify({username: username, password: password}),
+                credentials: 'same-origin'
             }).then(data => {
+                console.log(data)
                 if (data.status !== 200) {
-                    throw new Error('Failed to fetch data');
+                    throw new Error('Failed to fetch ');
                 } else {
                     setUser(data);
                     localStorage.setItem('user', data)
@@ -155,13 +157,13 @@ export function FRCMatchGambling() {
         }
 
         const handleLogin = () => {
-            fetch(api + '/login', {
+            fetch(api + '/accounts/login', {
                 method: 'POST',
                 mode: 'cors',
                 body: JSON.stringify({username: username, password: password}),
                 headers: {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': 'http://localhost:5000/api'
+                    'Access-Control-Allow-Origin': 'http://localhost:5000'
                 }
             }).then(data => {
                 if (data.status !== 200) {

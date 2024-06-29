@@ -139,6 +139,7 @@ exports.createAccount = async (req, res) => {
 }
 
 exports.login = async (req, res) => {
+    console.log(req.body)
     googleSheetAPI.getSpreadSheetValues({
         spreadsheetId: spreadsheetId,
         sheetName: 'UserData'

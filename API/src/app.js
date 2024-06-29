@@ -4,10 +4,10 @@ const cors = require('cors');
 const routes = require('./routes/routes');
 require('dotenv').config();
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 
 const corsOptions = {
-    origin: 'http://localhost:3080',
+    origin: process.env.CORS_ORIGIN,
     optionsSuccessStatus: 200
 };
 
