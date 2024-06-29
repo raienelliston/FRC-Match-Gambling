@@ -83,6 +83,7 @@ function updateBets() {
                 });
             }
         });
+        res.status(200).send('Bets updated');
     });
 }
 
@@ -139,6 +140,7 @@ exports.createAccount = async (req, res) => {
 }
 
 exports.login = async (req, res) => {
+    let found = false;
     console.log(req.body)
     googleSheetAPI.getSpreadSheetValues({
         spreadsheetId: spreadsheetId,
@@ -148,9 +150,12 @@ exports.login = async (req, res) => {
         users.forEach(user => {
             if (user[1] == req.body.username && user[2] == req.body.password) {
                 res.status(200).send(user[0]);
+                found = true;
             }
         });
-        res.status(404).send('User not found');
+        if (!found) {
+            res.status(404).send('User not found');
+        }
     }).catch((err) => {
         res.status(400).send('Error logging in');
     });

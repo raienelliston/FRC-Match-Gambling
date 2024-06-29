@@ -53,24 +53,42 @@ export function FRCMatchGambling() {
     const [user, setUser] = useState("");
 
     const update = () => {
-        const matchListUpdate = fetch(api + '/matches'
-        ).then(data => {
+        const matchListUpdate = fetch(api + '/matches', {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': 'http://localhost:5000'
+        }
+        }).then(data => {
             if (data.status !== 200) {
                 throw new Error('Failed to fetch data');
             } else {
                 setMatchList(data);
             }
         })
-        const betUpdate = fetch(api + '/bets'
-        ).then(data => {
+        const betUpdate = fetch(api + '/bets', {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': 'http://localhost:5000'
+        }
+        }).then(data => {
             if (data.status !== 200) {
                 throw new Error('Failed to fetch data');
             } else {
                 setBet(data);
             }
         })
-        const balanceUpdate = fetch(api + '/balance'
-        ).then(data => {
+        const balanceUpdate = fetch(api + '/accounts/balance', {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': 'http://localhost:5000'
+        }
+        }).then(data => {
             if (data.status !== 200) {
                 throw new Error('Failed to fetch data');
             } else {
@@ -80,8 +98,14 @@ export function FRCMatchGambling() {
     }
 
     const updateMatch = (match) => {
-        const matchUpdate = fetch(api + '/matches/' + match
-        ).then(data => {
+        const matchUpdate = fetch(api + '/matches/' + match, {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': 'http://localhost:5000'
+        }
+        }).then(data => {
             if (data.status !== 200) {
                 throw new Error('Failed to fetch data');
             } else {
