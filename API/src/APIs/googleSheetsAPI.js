@@ -52,7 +52,7 @@ async function createSheet({ spreadsheetId, title }) {
 async function getSpreadSheetValues({ spreadsheetId, sheetName }) {
   const auth = await getAuthToken();
   const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: spreadsheetId,
+    spreadsheetId,
     auth,
     range: sheetName,
     key: 'AIzaSyBSK1wy2XRqyaGlKk_KTsWpKWahH0xLYdw'
@@ -120,7 +120,7 @@ async function updateSpreadSheetValues({ spreadsheetId, sheetName, values, cell=
   return res;
 }
 
-function createSpreadSheetTemplate( {spreadsheetId=null, sheetName, values} ) {
+async function createSpreadSheetTemplate( {spreadsheetId=null, sheetName, values} ) {
   // DEV ONLY, REMOVE IN PRODUCTION. NEED TO ADD ABILITY TO SHARE SHEET WITH OTHERS
   // if (spreadsheetId == null) {
   //   const auth = await getAuthToken();
@@ -151,11 +151,11 @@ function createSpreadSheetTemplate( {spreadsheetId=null, sheetName, values} ) {
   // }
 
   
-  data = getSpreadSheet({ spreadsheetId })
-  console.log(data.data.sheets);
+  data = await getSpreadSheet({ spreadsheetId }).data.sheets
+  console.log(data);
 
   values.forEach(element => {
-    if (data.data.sheets.find((sheet) => sheet.properties.title == element.sheetName) == undefined) {
+    if (data.find((sheet) => sheet.properties.title == element.sheetName) == undefined) {
       createSheet({
         spreadsheetId: spreadsheetId,
         title: element.sheetName

@@ -29,24 +29,25 @@ template = [
         ]
     },
     {
-        sheetName: 'Action History',
+        sheetName: 'Bet History',
         values: [
-            []
+            ['Username', 'MatchID', 'Bet Amount', 'Bet Team', 'Bet Status']
         ]
     }
 ]
 
-const getUserData = new Promise((resolve, reject) => {
-    googleSheetAPI.getSpreadSheetValues({
-        spreadsheetId: process.env.SPREADSHEET_ID,
+const spreadsheetId = '1aWICfWZeuWS2pt_rL0ghrLDN75VqYjqK91IGZ4L9raY';
+
+const getUserData = async () => {
+    const data = await googleSheetAPI.getSpreadSheetValues({
+        spreadsheetId: spreadsheetId,
         sheetName: 'UserData'
-    }).then(data => {
-        resolve(data);
     });
-});
+    return data.data.values;
+}
 
 //DEV ONLY, REMOVE IN PRODUCTION
-exports.setupTemplate = async (req, res) => {
+exports.setuptemplate = async (req, res) => {
     googleSheetAPI.createSpreadSheetTemplate( {
         spreadsheetId: spreadsheetId,
         values: template
@@ -58,14 +59,19 @@ exports.status = (req, res) => {
 }
 
 exports.getBalance = async (req, res) => {
+    let found = false;
     getUserData().then(data => {
         console.log(data);
         data.forEach(row => {
+            console.log(row);
             if (row[0] == req.body.username) {
                 res.status(200).send(row[1]);
+                found = true;
             }
         });
-        res.status(404).send('User not found')
+        if (!found) {
+            res.status(404).send('User not found');
+        }
     })  
 }
 
