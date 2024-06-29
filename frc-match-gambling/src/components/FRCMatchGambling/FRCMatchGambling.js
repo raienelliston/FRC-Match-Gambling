@@ -2,7 +2,7 @@ import { useState } from 'react';
 import styled from 'styled-components';
 import "./FRCMatchGambling.css";
 
-const api = process.env.FRC_MATCH_GAMBLING_API;
+const api = 'http://localhost:5000/api';
 
 const Wrapper = styled.div`
     display: flex;
@@ -135,11 +135,15 @@ export function FRCMatchGambling() {
     const Login = () => {
         const [ password, setPassword ] = useState("");
         const [ username, setUsername ] = useState("");
-
         const handleCreateAccount = () => {
             fetch(api + '/create', {
                 method: 'POST',
-                body: JSON.stringify({username: username, password: password})
+                mode: 'cors',
+                body: JSON.stringify({username: username, password: password}),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': 'http://localhost:5000/api'
+                }
             }).then(data => {
                 if (data.status !== 200) {
                     throw new Error('Failed to fetch data');
@@ -153,7 +157,12 @@ export function FRCMatchGambling() {
         const handleLogin = () => {
             fetch(api + '/login', {
                 method: 'POST',
-                body: JSON.stringify({username: username, password: password})
+                mode: 'cors',
+                body: JSON.stringify({username: username, password: password}),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': 'http://localhost:5000/api'
+                }
             }).then(data => {
                 if (data.status !== 200) {
                     throw new Error('Failed to fetch data');
