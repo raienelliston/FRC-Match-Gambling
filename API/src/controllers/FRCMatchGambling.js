@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const googleSheetAPI = require('../APIs/googleSheetsAPI');
+const statbotics = require('../APIs/statboticsAPI');
 const TBA = require('../APIs/TBAApi');
 const { google } = require('googleapis');
 const { v4: uuidv4 } = require('uuid');
@@ -244,3 +245,12 @@ exports.getTeamData = async (req, res) => {
     })
 }
 
+exports.getMatchBetInfo = async (req, res) => {
+    const matchData = await statbotics.getMatchData( {
+        matchKey
+    }).then((response) => {
+        return response;
+    }).catch((err) => {
+        return err;
+    });
+}

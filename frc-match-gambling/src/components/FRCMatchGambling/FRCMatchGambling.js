@@ -44,6 +44,12 @@ const BodyWrapper = styled.div`
     box-sizing: border-box;
 `;
 
+const BodySplitWrapper = styled.div`
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    gap: 10px;
+`;
+
 const LoginWrapper = styled.div`
     display: flex;
     flex-direction: column;
@@ -159,15 +165,18 @@ export function FRCMatchGambling() {
         </HeaderWrapper>
     );
     console.log(matchList);
-    const Matches = () => {
+    const Matches = ({ onClick }) => {
         const [ignoreFinished, setIgnoreFinished] = useState(false);
         const matchTable = matchList.map(match => {
             const key = match.key.slice(match.key.indexOf("_") + 1, match.key.length)
             const finished = match.actual_time ? true : false;
             console.log(match.actual_time);
             const time = finished ? new Date(match.actual_time * 1000).toLocaleString() : new Date(match.predicted_time * 1000).toLocaleString();
+            
+            if (ignoreFinished && finished) return null;
+            
             return (
-                <MatchScrollItem onClick={() => updateMatch(match)}>
+                <MatchScrollItem key={key} onClick={() => onClick(match.key)}>
                     <input type="checkbox" checked={finished} readOnly />
                     {key + " - "}
                     {time.slice(0, time.length - 6) + " " + time.slice(time.length - 2, time.length)}
@@ -187,29 +196,67 @@ export function FRCMatchGambling() {
         )
     }
 
-    const MatchBets = () => (
-        <TileWrapper>
-            <h1>Match Bets</h1>
-        </TileWrapper>
-    );
+    const BetPlacer = () => {
 
-    const MatchInfo = () => (
-        <TileWrapper>
-            <h1>Match Info</h1>
-        </TileWrapper>
-    );
+        if (placingBet === false) {
+            return (
+                <TileWrapper>
+                    <div>Click on a match on the left to place a bet on it and open match info</div>
+                </TileWrapper>
+            );
+        }
 
-    const Leaderboard = () => (
-        <TileWrapper>
-            <h1>Leaderboard</h1>
-        </TileWrapper>
-    );
+        const matchInfo = fetch(api + '/matchbetinfo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ match: placingBet })
+        }).then(response => response.json()
+        ).then(data => setMatch(data)
+        ).catch(err => console.error('Failed to fetch match:', err))
 
-    const BetPlacer = () => (
-        <TileWrapper>
-            <h1>Place Your Bet</h1>
-        </TileWrapper>
-    );
+        console.log(matchInfo)
+        return (
+            <TileWrapper>
+                <h1>Match Bets</h1>
+                <div>Match: {placingBet.slice(placingBet.indexOf("_") + 1, placingBet.length)}</div>
+                <div>Alliance Red: {}</div>
+                <div>Alliance Blue: {}</div>
+                <input type="number" placeholder="Bet Amount" onChange={e => setBet({ ...bet, amount: e.target.value })} />
+                <div>Alliance Red Odds: {}</div>
+                <div>Alliance Blue Odds: {}</div>
+                <div>Alliance Estimated Payout: {}</div>
+                <div>Alliance Estimated Payout: {}</div>
+                <button onClick={() => setPlacingBet(false)}>Place Bet</button>
+            </TileWrapper>
+        );
+    };
+
+    const MatchBets = () => {
+
+        if (placingBet === false) {
+            return (
+                <TileWrapper>
+                    <div>Bet History</div>
+                </TileWrapper>
+            );
+        }
+        console.log(placingBet)
+
+        return (
+            <TileWrapper>
+                <h1>Match Info</h1>
+                <div>Match: {placingBet.slice(placingBet.indexOf("_") + 1, placingBet.length)}</div>
+            </TileWrapper>
+        );
+    };
+
+    const Leaderboard = () => {
+        return (
+            <TileWrapper>
+                <h1>Leaderboard</h1>
+            </TileWrapper>
+        );
+    };
 
     const Login = () => {
         const [password, setPassword] = useState("");
@@ -262,24 +309,15 @@ export function FRCMatchGambling() {
     //     );
     // }
 
-    if (placingBet) {
-        return (
-            <Wrapper>
-                <Header />
-                <BodyWrapper>
-                    <MatchInfo />
-                    <BetPlacer />
-                </BodyWrapper>
-            </Wrapper>
-        );
-    }
-
     return (
         <Wrapper>
             <Header />
             <BodyWrapper>
-                <Matches />
-                <MatchBets />
+                <Matches onClick={setPlacingBet} />
+                <BodySplitWrapper>
+                    <BetPlacer />
+                    <MatchBets />
+                </BodySplitWrapper>
                 <Leaderboard />
             </BodyWrapper>
         </Wrapper>
