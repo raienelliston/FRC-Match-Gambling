@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import Switch from 'react-switch';
 import "./FRCMatchGambling.css";
@@ -99,9 +99,10 @@ const MatchScrollItem = styled.div`
 export function FRCMatchGambling() {
     const [balance, setBalance] = useState(0);
     const [matchList, setMatchList] = useState([]);
-    const [bet, setBet] = useState({});
+    const [bet, setBet] = useState({Amount: 1});
     const [user, setUser] = useState("");
     const [betData, setBetData] = useState(false);
+    const betAmountInputRef = useRef(null);
 
     useEffect(() => {
         if (matchList.length === 0) {
@@ -205,6 +206,12 @@ export function FRCMatchGambling() {
 
     const BetPlacer = () => {
 
+        useEffect(() => {
+            if (bet.amount !== '' && betAmountInputRef.current !== null) {
+                betAmountInputRef.current.focus(); // Focus back on input after bet amount changes
+            }
+        }, [bet.amount]);
+
         if (betData === false) {
             return (
                 <TileWrapper>
@@ -215,7 +222,7 @@ export function FRCMatchGambling() {
         if (betData === false) {
             betData = updateMatchInfo();
         }
-
+        
         function placeBet() {
             fetch(api + '/placebet', {
                 method: 'POST',
@@ -228,13 +235,15 @@ export function FRCMatchGambling() {
             }).catch(err => console.error('Failed to place bet:', err));
         }
 
+
         return (
             <TileWrapper>
                 <h1>Match Bets</h1>
                 <div>Match: {betData.key.slice(betData.key.indexOf("_") + 1, betData.key.length)}</div>
                 <div>Alliance Red: {betData.alliances.red.team_keys[0] + ", " + betData.alliances.red.team_keys[1] + ", " + betData.alliances.red.team_keys[2]}</div>
                 <div>Alliance Blue: {betData.alliances.blue.team_keys[0] + ", " + betData.alliances.blue.team_keys[1] + ", " + betData.alliances.blue.team_keys[2]}</div>
-                <input type="number" placeholder="Bet Amount" value={bet} onChange={e => setBet({e})} />
+                <input ref={betAmountInputRef} type="number" placeholder="Bet Amount" value={bet.amount} onChange={e => setBet({ ...bet, amount: e.target.value })} />
+                <Switch onChange={() => setBet({ ...bet, team: bet.team === 'red' ? 'blue' : 'red' })} checked={bet.team === 'red'} />
                 <div>Alliance Red Odds: {Number((betData.pred.red_win_prob).toFixed(2))}</div>
                 <div>Alliance Blue Odds: {Number((1 - (betData.pred.red_win_prob)).toFixed(2))}</div>
                 <div>Alliance Estimated Payout: {Number(bet * (betData.pred.red_win_prob).toFixed(2))}</div>
@@ -243,6 +252,8 @@ export function FRCMatchGambling() {
             </TileWrapper>
         );
     };
+
+    //7 9 4 1
 
     const MatchBets = () => {
 
