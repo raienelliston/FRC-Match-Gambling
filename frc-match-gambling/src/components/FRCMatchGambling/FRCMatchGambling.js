@@ -99,7 +99,7 @@ const MatchScrollItem = styled.div`
 export function FRCMatchGambling() {
     const [balance, setBalance] = useState(0);
     const [matchList, setMatchList] = useState([]);
-    const [match, setMatch] = useState({});
+    const [matchData, setMatchData] = useState({});
     const [bet, setBet] = useState({});
     const [user, setUser] = useState("");
     const [placingBet, setPlacingBet] = useState(false);
@@ -109,6 +109,17 @@ export function FRCMatchGambling() {
             update();
         }
     }, []);
+
+    const updateMatchInfo = () => {
+        const matchInfo = fetch(api + '/matchbetinfo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ matchKey: placingBet })
+        }).then(response => response.json()
+        ).then(data => setMatchData(data)
+        ).catch(err => console.error('Failed to fetch match:', err))
+        return matchInfo;
+    }
 
     const update = () => {
         fetch(api + '/matches', {
@@ -148,13 +159,6 @@ export function FRCMatchGambling() {
         );
     };
 
-    const updateMatch = (match) => {
-        fetch(api + '/matches/' + match, { method: 'GET', headers: { 'Content-Type': 'application/json' } })
-            .then(response => response.json())
-            .then(data => setMatch(data))
-            .catch(err => console.error('Failed to fetch match:', err));
-    };
-
     const Header = () => (
         <HeaderWrapper>
             <TitleWrapper>FRC Match Gambling</TitleWrapper>
@@ -164,8 +168,8 @@ export function FRCMatchGambling() {
             </AccountInfoWrapper>
         </HeaderWrapper>
     );
-    console.log(matchList);
-    const Matches = ({ onClick }) => {
+
+    const Matches = () => {
         const [ignoreFinished, setIgnoreFinished] = useState(false);
         const matchTable = matchList.map(match => {
             const key = match.key.slice(match.key.indexOf("_") + 1, match.key.length)
@@ -174,6 +178,11 @@ export function FRCMatchGambling() {
             const time = finished ? new Date(match.actual_time * 1000).toLocaleString() : new Date(match.predicted_time * 1000).toLocaleString();
             
             if (ignoreFinished && finished) return null;
+
+            function onClick(key) {
+                updateMatchInfo(key);
+                setPlacingBet(key);
+            }
             
             return (
                 <MatchScrollItem key={key} onClick={() => onClick(match.key)}>
@@ -205,25 +214,17 @@ export function FRCMatchGambling() {
                 </TileWrapper>
             );
         }
+        console.log(matchData)
 
-        const matchInfo = fetch(api + '/matchbetinfo', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ match: placingBet })
-        }).then(response => response.json()
-        ).then(data => setMatch(data)
-        ).catch(err => console.error('Failed to fetch match:', err))
-
-        console.log(matchInfo)
         return (
             <TileWrapper>
                 <h1>Match Bets</h1>
                 <div>Match: {placingBet.slice(placingBet.indexOf("_") + 1, placingBet.length)}</div>
-                <div>Alliance Red: {}</div>
-                <div>Alliance Blue: {}</div>
+                <div>Alliance Red: {matchData.alliances.red.team_keys[0] + ", " + matchData.alliances.red.team_keys[1] + ", " + matchData.alliances.red.team_keys[2]}</div>
+                <div>Alliance Blue: {matchData.alliances.blue.team_keys[0] + ", " + matchData.alliances.blue.team_keys[1] + ", " + matchData.alliances.blue.team_keys[2]}</div>
                 <input type="number" placeholder="Bet Amount" onChange={e => setBet({ ...bet, amount: e.target.value })} />
-                <div>Alliance Red Odds: {}</div>
-                <div>Alliance Blue Odds: {}</div>
+                <div>Alliance Red Odds: {matchData.pred.red_win_prob}</div>
+                <div>Alliance Blue Odds: {1 / parseFloat(matchData.pred.red_win_prob)}</div>
                 <div>Alliance Estimated Payout: {}</div>
                 <div>Alliance Estimated Payout: {}</div>
                 <button onClick={() => setPlacingBet(false)}>Place Bet</button>
@@ -313,7 +314,7 @@ export function FRCMatchGambling() {
         <Wrapper>
             <Header />
             <BodyWrapper>
-                <Matches onClick={setPlacingBet} />
+                <Matches />
                 <BodySplitWrapper>
                     <BetPlacer />
                     <MatchBets />

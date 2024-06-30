@@ -246,11 +246,13 @@ exports.getTeamData = async (req, res) => {
 }
 
 exports.getMatchBetInfo = async (req, res) => {
+    console.log(req.body.matchKey)
     const matchData = await statbotics.getMatchData( {
-        matchKey
+        matchKey: req.body.matchKey
     }).then((response) => {
-        return response;
+        console.log(response);
+        res.status(200).send(response);
     }).catch((err) => {
-        return err;
+        res.status(400).send('Error getting match data');
     });
 }
