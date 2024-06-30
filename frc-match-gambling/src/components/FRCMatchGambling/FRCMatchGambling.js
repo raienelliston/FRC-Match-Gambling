@@ -99,10 +99,9 @@ const MatchScrollItem = styled.div`
 export function FRCMatchGambling() {
     const [balance, setBalance] = useState(0);
     const [matchList, setMatchList] = useState([]);
-    const [matchData, setMatchData] = useState({});
     const [bet, setBet] = useState({});
     const [user, setUser] = useState("");
-    const [placingBet, setPlacingBet] = useState(false);
+    const [betData, setBetData] = useState(false);
 
     useEffect(() => {
         if (matchList.length === 0) {
@@ -110,13 +109,13 @@ export function FRCMatchGambling() {
         }
     }, []);
 
-    const updateMatchInfo = () => {
+    const updateMatchInfo = (key) => {
         const matchInfo = fetch(api + '/matchbetinfo', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ matchKey: placingBet })
+            body: JSON.stringify({ matchKey: key })
         }).then(response => response.json()
-        ).then(data => setMatchData(data)
+        ).then(data => setBetData(data)
         ).catch(err => console.error('Failed to fetch match:', err))
         return matchInfo;
     }
@@ -181,7 +180,6 @@ export function FRCMatchGambling() {
 
             function onClick(key) {
                 updateMatchInfo(key);
-                setPlacingBet(key);
             }
             
             return (
@@ -207,46 +205,60 @@ export function FRCMatchGambling() {
 
     const BetPlacer = () => {
 
-        if (placingBet === false) {
+        if (betData === false) {
             return (
                 <TileWrapper>
                     <div>Click on a match on the left to place a bet on it and open match info</div>
                 </TileWrapper>
             );
         }
-        console.log(matchData)
+        if (betData === false) {
+            betData = updateMatchInfo();
+        }
+
+        function placeBet() {
+            fetch(api + '/placebet', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ matchID: betData.key, betAmount: bet.amount, betTeam: bet.team })
+            }).then(response => response.json()
+            ).then(data => {
+                console.log(data);
+                betData = false;
+            }).catch(err => console.error('Failed to place bet:', err));
+        }
 
         return (
             <TileWrapper>
                 <h1>Match Bets</h1>
-                <div>Match: {placingBet.slice(placingBet.indexOf("_") + 1, placingBet.length)}</div>
-                <div>Alliance Red: {matchData.alliances.red.team_keys[0] + ", " + matchData.alliances.red.team_keys[1] + ", " + matchData.alliances.red.team_keys[2]}</div>
-                <div>Alliance Blue: {matchData.alliances.blue.team_keys[0] + ", " + matchData.alliances.blue.team_keys[1] + ", " + matchData.alliances.blue.team_keys[2]}</div>
-                <input type="number" placeholder="Bet Amount" onChange={e => setBet({ ...bet, amount: e.target.value })} />
-                <div>Alliance Red Odds: {matchData.pred.red_win_prob}</div>
-                <div>Alliance Blue Odds: {1 / parseFloat(matchData.pred.red_win_prob)}</div>
-                <div>Alliance Estimated Payout: {}</div>
-                <div>Alliance Estimated Payout: {}</div>
-                <button onClick={() => setPlacingBet(false)}>Place Bet</button>
+                <div>Match: {betData.key.slice(betData.key.indexOf("_") + 1, betData.key.length)}</div>
+                <div>Alliance Red: {betData.alliances.red.team_keys[0] + ", " + betData.alliances.red.team_keys[1] + ", " + betData.alliances.red.team_keys[2]}</div>
+                <div>Alliance Blue: {betData.alliances.blue.team_keys[0] + ", " + betData.alliances.blue.team_keys[1] + ", " + betData.alliances.blue.team_keys[2]}</div>
+                <input type="number" placeholder="Bet Amount" value={bet} onChange={e => setBet({e})} />
+                <div>Alliance Red Odds: {Number((betData.pred.red_win_prob).toFixed(2))}</div>
+                <div>Alliance Blue Odds: {Number((1 - (betData.pred.red_win_prob)).toFixed(2))}</div>
+                <div>Alliance Estimated Payout: {Number(bet * (betData.pred.red_win_prob).toFixed(2))}</div>
+                <div>Alliance Estimated Payout: {Number(bet * (1 - (betData.pred.red_win_prob)).toFixed(2))}</div>
+                <button onClick={() => placeBet}>Place Bet</button>
             </TileWrapper>
         );
     };
 
     const MatchBets = () => {
 
-        if (placingBet === false) {
+        if (betData === false) {
             return (
                 <TileWrapper>
                     <div>Bet History</div>
                 </TileWrapper>
             );
         }
-        console.log(placingBet)
+        console.log(betData)
 
         return (
             <TileWrapper>
                 <h1>Match Info</h1>
-                <div>Match: {placingBet.slice(placingBet.indexOf("_") + 1, placingBet.length)}</div>
+                <div>Match: {betData.key.slice(betData.key.indexOf("_") + 1, betData.key.length)}</div>
             </TileWrapper>
         );
     };
