@@ -204,7 +204,12 @@ exports.getEventMatches = async (req, res) => {
     }).then((response) => {
         const matchData = []
         for (const match of response) {
-            matchData.push([match.key, match.predicted_time, match.actual_time, match.winning_alliance, match.alliances.red.team_keys, match.alliances.blue.team_keys]);
+            matchData.push({
+                key: match.key, 
+                predicted_time: match.predicted_time, 
+                actual_time: match.actual_time, 
+                winning_alliance: match.winning_alliance
+        });
         }
         console.log(matchData);
         res.status(200).send(matchData);

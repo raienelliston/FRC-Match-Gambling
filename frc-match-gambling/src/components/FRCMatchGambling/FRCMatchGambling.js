@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import Switch from 'react-switch';
 import "./FRCMatchGambling.css";
 
 const api = 'http://localhost:5000/api';
@@ -79,6 +80,16 @@ const MatchScrollWrapper = styled.div`
     box-sizing: border-box;
 `;
 
+const MatchScrollItem = styled.div`
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    margin: 5px;
+    background-color: #282c34;
+    border-radius: 8px;
+    color: white;
+`;
+
 export function FRCMatchGambling() {
     const [balance, setBalance] = useState(0);
     const [matchList, setMatchList] = useState([]);
@@ -147,20 +158,28 @@ export function FRCMatchGambling() {
             </AccountInfoWrapper>
         </HeaderWrapper>
     );
-
+    console.log(matchList);
     const Matches = () => {
-        
+        const [ignoreFinished, setIgnoreFinished] = useState(false);
         const matchTable = matchList.map(match => {
+            const key = match.key.slice(match.key.indexOf("_") + 1, match.key.length)
+            const finished = match.actual_time ? true : false;
+            console.log(match.actual_time);
+            const time = finished ? new Date(match.actual_time * 1000).toLocaleString() : new Date(match.predicted_time * 1000).toLocaleString();
             return (
-                <TileWrapper onClick={() => updateMatch(match)}>
-                    <h1>{match}</h1>
-                </TileWrapper>
+                <MatchScrollItem onClick={() => updateMatch(match)}>
+                    <input type="checkbox" checked={finished} readOnly />
+                    {key + " - "}
+                    {time.slice(0, time.length - 6) + " " + time.slice(time.length - 2, time.length)}
+                </MatchScrollItem>
             )
         })
 
         return (
             <TileWrapper>
                 <h1>Matches</h1>
+                <div>Ignore Finished Matches</div>
+                <Switch onChange={() => setIgnoreFinished(!ignoreFinished)} checked={ignoreFinished} />
                 <MatchScrollWrapper>
                     {matchTable}
                 </MatchScrollWrapper>
