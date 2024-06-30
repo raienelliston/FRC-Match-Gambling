@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import "./FRCMatchGambling.css";
 
@@ -7,47 +7,40 @@ const api = 'http://localhost:5000/api';
 const Wrapper = styled.div`
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    width: 100vw;
+    height: 100$;
+    width: 100%;
     background-color: #282c34;
 `;
 
 const HeaderWrapper = styled.div`
     display: flex;
-    flex-direction: row;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     height: 10vh;
-    width: 100vw;
+    width: 100%;
     background-color: #282c34;
+    color: white;
 `;
 
 const TitleWrapper = styled.div`
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
     font-size: 2em;
 `;
 
 const AccountInfoWrapper = styled.div`
     display: flex;
-    align-items: center;
     flex-direction: column;
-    margin-right: 10px;
+    align-items: flex-end;
 `;
 
 const BodyWrapper = styled.div`
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    grid-template-rows: auto;
-    gap: 5px;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    padding: 10px;
     height: 90vh;
-    width: 100vw;
-    background-color: #282c34;
-    overflow-y: auto;
-    background-color: #282c34;
+    width: 100%;
+    overflow-y: scroll;
+    box-sizing: border-box;
 `;
 
 const LoginWrapper = styled.div`
@@ -58,7 +51,7 @@ const LoginWrapper = styled.div`
     height: 100vh;
     width: 100vw;
     background-color: #282c34;
-    z-index: 1;
+    color: white;
 `;
 
 const TileWrapper = styled.div`
@@ -66,18 +59,24 @@ const TileWrapper = styled.div`
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 20vh;
-    width: 20vw;
-    background-color: #235922;
-    margin: 5px;
-    border: 1px solid white;
+    background-color: #394a59;
+    height: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 20px;
+    border-radius: 8px;
+    color: white;
+    box-sizing: border-box;
 `;
 
 const MatchScrollWrapper = styled.div`
-    background-color: #282c34;
-    border-radius: 5px;
-    padding: 0 10px 10px 10px;
-    overflow: scroll;
+    background-color: #394a59;
+    border-radius: 8px;
+    padding: 10px;
+    overflow-y: auto;
+    height: calc(100% - 40px);
+    width: 100%;
+    box-sizing: border-box;
 `;
 
 export function FRCMatchGambling() {
@@ -86,88 +85,68 @@ export function FRCMatchGambling() {
     const [match, setMatch] = useState({});
     const [bet, setBet] = useState({});
     const [user, setUser] = useState("");
-    const [placeingBet, setPlacingBet] = useState(false);
+    const [placingBet, setPlacingBet] = useState(false);
+
+    useEffect(() => {
+        if (matchList.length === 0) {
+            update();
+        }
+    }, []);
 
     const update = () => {
-        const matchListUpdate = fetch(api + '/matches', {
+        fetch(api + '/matches', {
             method: 'GET',
-            mode: 'cors',
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': 'http://localhost:5000'
-        }
-        }).then(data => {
-            if (data.status !== 200) {
-                throw new Error('Failed to fetch data');
-            } else {
-                setMatchList(data);
+            headers: { 
+                'Content-Type': 'application/json' 
             }
-        })
-        const betUpdate = fetch(api + '/updatebets', {
+        }).then(response => response.json()
+        ).then(data => 
+            setMatchList(data)
+        ).catch(err => 
+            console.error('Failed to fetch matches:', err)
+        );
+
+        fetch(api + '/updatebets', {
             method: 'GET',
-            mode: 'cors',
             headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': 'http://localhost:5000'
-        }
-        }).then(data => {
-            if (data.status !== 200) {
-                throw new Error('Failed to fetch data');
-            } else {
-                setBet(data);
+                'Content-Type': 'application/json'
             }
-        })
-        const balanceUpdate = fetch(api + '/accounts/balance', {
-            method: 'POST',
-            mode: 'cors',
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': 'http://localhost:5000'
-        }
-        }).then(data => {
-            if (data.status !== 200) {
-                throw new Error('Failed to fetch data');
-            } else {
-                setBalance(data);
+        }).then(response => response.json()
+        ).then(data =>
+            console.log(data)
+        ).catch(err =>
+            console.error('Failed to update bets:', err)
+        );
+
+        fetch(api + '/balance', {
+            method: 'GET',
+            headers: { 
+                'Content-Type': 'application/json' 
             }
-        })
-    }
+        }).then(response => response.json()
+        ).then(data => 
+            setBalance(data)
+        ).catch(err => 
+            console.error('Failed to fetch balance:', err)
+        );
+    };
 
     const updateMatch = (match) => {
-        const matchUpdate = fetch(api + '/matches/' + match, {
-            method: 'GET',
-            mode: 'cors',
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': 'http://localhost:5000'
-        }
-        }).then(data => {
-            if (data.status !== 200) {
-                throw new Error('Failed to fetch data');
-            } else {
-                setMatch(data);
-            }
-        })
-    }
+        fetch(api + '/matches/' + match, { method: 'GET', headers: { 'Content-Type': 'application/json' } })
+            .then(response => response.json())
+            .then(data => setMatch(data))
+            .catch(err => console.error('Failed to fetch match:', err));
+    };
 
-    const Header = () => {
-        console.log(balance)
-        return (
-            <HeaderWrapper>
-                <TitleWrapper>
-                    FRC Match Gambling
-                </TitleWrapper>
-                <AccountInfoWrapper>
-                    <div>
-                        User: {user}
-                    </div>
-                    <div>
-                        Balance: {balance}
-                    </div>
-                </AccountInfoWrapper>
-            </HeaderWrapper>
-        )
-    }
+    const Header = () => (
+        <HeaderWrapper>
+            <TitleWrapper>FRC Match Gambling</TitleWrapper>
+            <AccountInfoWrapper>
+                <div>User: {user}</div>
+                <div>Balance: ${balance}</div>
+            </AccountInfoWrapper>
+        </HeaderWrapper>
+    );
 
     const Matches = () => {
         
@@ -189,129 +168,101 @@ export function FRCMatchGambling() {
         )
     }
 
-    const MatchBets = () => {
-        return (
-            <TileWrapper>
-                Match Bets
-            </TileWrapper>
-        )
-    }
+    const MatchBets = () => (
+        <TileWrapper>
+            <h1>Match Bets</h1>
+        </TileWrapper>
+    );
 
-    const MatchInfo = () => {
-        return (
-            <TileWrapper>
-                <h1>Match Info</h1>
-                <h2>{match}</h2>
-            </TileWrapper>
-        )
-    }
+    const MatchInfo = () => (
+        <TileWrapper>
+            <h1>Match Info</h1>
+        </TileWrapper>
+    );
 
-    // Do later
-    const Leaderboard = () => {
+    const Leaderboard = () => (
+        <TileWrapper>
+            <h1>Leaderboard</h1>
+        </TileWrapper>
+    );
 
-        return (
-            <TileWrapper>
-                <h1>Leaderboard</h1>
-            </TileWrapper>
-        )
-    }
-
-    const BetPlacer = () => {
-        return (
-            <TileWrapper>
-                Bet Placer
-            </TileWrapper>
-        )
-    }
+    const BetPlacer = () => (
+        <TileWrapper>
+            <h1>Place Your Bet</h1>
+        </TileWrapper>
+    );
 
     const Login = () => {
-        const [ password, setPassword ] = useState("");
-        const [ username, setUsername ] = useState("");
+        const [password, setPassword] = useState("");
+        const [username, setUsername] = useState("");
+
         const handleCreateAccount = () => {
             fetch(api + '/accounts/create', {
                 method: 'POST',
-                mode: 'cors',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': "http://localhost:5000"
-                },
-                body: JSON.stringify({username: username, password: password}),
-                credentials: 'same-origin'
-            }).then(data => {
-                console.log(data)
-                if (data.status !== 200) {
-                    throw new Error('Failed to fetch ');
-                } else {
-                    setUser(data);
-                    localStorage.setItem('user', data)
-                }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password }),
             })
-        }
+                .then(response => response.json())
+                .then(data => {
+                    setUser(data);
+                    localStorage.setItem('user', data);
+                })
+                .catch(err => console.error('Failed to create account:', err));
+        };
 
         const handleLogin = () => {
             fetch(api + '/accounts/login', {
                 method: 'POST',
-                mode: 'cors',
-                body: JSON.stringify({username: username, password: password}),
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': 'http://localhost:5000'
-                }
-            }).then(data => {
-                if (data.status !== 200) {
-                    throw new Error('Failed to fetch data');
-                } else {
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password }),
+            })
+                .then(response => response.json())
+                .then(data => {
                     setUser(data);
                     localStorage.setItem('user', data);
-                }
-            })
-        }
+                })
+                .catch(err => console.error('Failed to log in:', err));
+        };
+
         return (
             <LoginWrapper>
                 <h1>Login</h1>
-                <input type="text" placeholder="Username" onChange={(e) => setUsername(e.target.value)} />
-                <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
+                <input type="text" placeholder="Username" onChange={e => setUsername(e.target.value)} />
+                <input type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} />
                 <button onClick={handleLogin}>Login</button>
                 <button onClick={handleCreateAccount}>Create Account</button>
             </LoginWrapper>
-        )
-    }
-    console.log(user)
-    
-    // if (user === undefined || user === "" || user === null) {
-        // if (placeingBet) {
-        //     setPlacingBet(false);
-        // }
+        );
+    };
+
+    // if (!user) {
     //     return (
     //         <Wrapper>
     //             <Login />
     //         </Wrapper>
-    //     )
+    //     );
     // }
 
-    if (placeingBet) {
+    if (placingBet) {
         return (
             <Wrapper>
                 <Header />
-                <MatchInfo />
-                <BetPlacer />
+                <BodyWrapper>
+                    <MatchInfo />
+                    <BetPlacer />
+                </BodyWrapper>
             </Wrapper>
-        )
-    }
-
-    if (matchList.length === 0) {
-        update();
+        );
     }
 
     return (
-    <Wrapper>
-        <Header />
-        <BodyWrapper >
-            <Matches />
-            <MatchBets />
-            <Leaderboard />
-            <BetPlacer />
-        </BodyWrapper >
-    </Wrapper>
-    )
+        <Wrapper>
+            <Header />
+            <BodyWrapper>
+                <Matches />
+                <MatchBets />
+                <Leaderboard />
+            </BodyWrapper>
+        </Wrapper>
+    );
 }

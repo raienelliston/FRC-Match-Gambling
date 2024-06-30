@@ -153,12 +153,12 @@ exports.login = async (req, res) => {
                 found = true;
             }
         });
-        if (!found) {
-            res.status(404).send('User not found');
-        }
     }).catch((err) => {
         res.status(400).send('Error logging in');
     });
+    if (!found) {
+        res.status(404).send('User not found');
+    }
 }
 
 exports.giveBalance = async (req, res) => {
