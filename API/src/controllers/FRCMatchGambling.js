@@ -127,14 +127,18 @@ exports.getBalance = (req, res) => {
 }
 
 exports.createAccount = async (req, res) => {
+    const id = await uuidv4();
+
     googleSheetAPI.appendSpreadSheetValues({
         spreadsheetId: spreadsheetId,
         sheetName: 'UserData',
         values: [
-            [uuidv4(), req.body.username, req.body.password]
+            [id, req.body.username, req.body.password]
         ]
     }).then((response) => {
-        res.status(200).send('Account created');
+        console.log(response);
+        console.log(id)
+        res.status(200).send(JSON.stringify(id));
     }).catch((err) => {
         res.status(400).send('Error creating account');
     });
@@ -185,11 +189,13 @@ exports.giveBalance = async (req, res) => {
 }
 
 exports.placeBet = async (req, res) => {
+    const user = await getUserData(req.body.userId)
+
     googleSheetAPI.appendSpreadSheetValues({
         spreadsheetId: spreadsheetId,
         sheetName: 'Bet History',
         values: [
-            [req.body.username, req.body.matchID, req.body.betAmount, req.body.betTeam, 'Pending']
+            [user[0], req.body.matchID, req.body.betAmount, req.body.betTeam, 'Pending']
         ]
     }).then((response) => {
         res.status(200).send('Bet placed');

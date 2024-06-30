@@ -3,7 +3,7 @@ const router = express.Router();
 const API = require('../controllers/FRCMatchGambling');
 
 router.get('/status', API.status);
-router.get('/bet', API.placeBet);
+router.post('/bet', API.placeBet);
 router.get('/updatebets', API.updateBets);
 router.get('/matches', API.getEventMatches);
 router.get('/matchdata', API.getMatchData);

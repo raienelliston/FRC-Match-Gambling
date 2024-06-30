@@ -295,10 +295,16 @@ export function FRCMatchGambling() {
         }
         
         function placeBet() {
-            fetch(api + '/placebet', {
+            console.log(bet.amount, bet.team, betData.key)
+            fetch(api + '/bet', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ matchID: betData.key, betAmount: bet.amount, betTeam: bet.team })
+                body: JSON.stringify({
+                    userId: user,
+                    matchID: betData.key,
+                    betAmount: bet.amount,
+                    betTeam: bet.team
+                })
             }).then(response => response.json()
             ).then(data => {
                 console.log(data);
@@ -334,9 +340,9 @@ export function FRCMatchGambling() {
                 <AllianceSwitch />
                 <div>Red Alliance Odds: {Number((betData.pred.red_win_prob).toFixed(2))}</div>
                 <div>Blue Alliance Odds: {Number((1 - (betData.pred.red_win_prob)).toFixed(2))}</div>
-                <div>Red Alliance Estimated Payout: {Number(bet * (betData.pred.red_win_prob).toFixed(2))}</div>
-                <div>Blue Alliance Estimated Payout: {Number(bet * (1 - (betData.pred.red_win_prob)).toFixed(2))}</div>
-                <button onClick={() => placeBet}>
+                <div>Red Alliance Estimated Payout: {Number(bet.amount * (1 / betData.pred.red_win_prob).toFixed(2))}</div>
+                <div>Blue Alliance Estimated Payout: {Number(bet.amount * (1 / (1 - (betData.pred.red_win_prob))).toFixed(2))}</div>
+                <button onClick={placeBet}>
                     Place Bet for {bet.amount} on {Capitalize(bet.team)} Alliance
                 </button>
             </TileWrapper>
@@ -371,7 +377,7 @@ export function FRCMatchGambling() {
                 </TileWrapper>
             );
         }
-        
+
         console.log(betData)
 
         return (
@@ -406,6 +412,7 @@ export function FRCMatchGambling() {
     const Login = () => {
         const [password, setPassword] = useState("");
         const [username, setUsername] = useState("");
+
 
         const handleCreateAccount = () => {
             fetch(api + '/accounts/create', {
@@ -445,14 +452,17 @@ export function FRCMatchGambling() {
             </LoginWrapper>
         );
     };
+    if (user === "" && localStorage.getItem('user')) {
+        setUser(localStorage.getItem('user'));
+    }
 
-    // if (!user) {
-    //     return (
-    //         <Wrapper>
-    //             <Login />
-    //         </Wrapper>
-    //     );
-    // }
+    if (!user) {
+        return (
+            <Wrapper>
+                <Login />
+            </Wrapper>
+        );
+    }
 
     return (
         <Wrapper>
