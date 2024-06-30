@@ -42,8 +42,7 @@ const BodyWrapper = styled.div`
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     grid-template-rows: auto;
-    gap: 10px;
-    padding: 10px;
+    gap: 5px;
     height: 90vh;
     width: 100vw;
     background-color: #282c34;
@@ -69,9 +68,16 @@ const TileWrapper = styled.div`
     justify-content: center;
     height: 20vh;
     width: 20vw;
-    background-color: #282c34;
-    margin: 10px;
+    background-color: #235922;
+    margin: 5px;
     border: 1px solid white;
+`;
+
+const MatchScrollWrapper = styled.div`
+    background-color: #282c34;
+    border-radius: 5px;
+    padding: 0 10px 10px 10px;
+    overflow: scroll;
 `;
 
 export function FRCMatchGambling() {
@@ -80,6 +86,7 @@ export function FRCMatchGambling() {
     const [match, setMatch] = useState({});
     const [bet, setBet] = useState({});
     const [user, setUser] = useState("");
+    const [placeingBet, setPlacingBet] = useState(false);
 
     const update = () => {
         const matchListUpdate = fetch(api + '/matches', {
@@ -164,9 +171,20 @@ export function FRCMatchGambling() {
 
     const Matches = () => {
         
+        const matchTable = matchList.map(match => {
+            return (
+                <TileWrapper onClick={() => updateMatch(match)}>
+                    <h1>{match}</h1>
+                </TileWrapper>
+            )
+        })
+
         return (
             <TileWrapper>
-                Matches
+                <h1>Matches</h1>
+                <MatchScrollWrapper>
+                    {matchTable}
+                </MatchScrollWrapper>
             </TileWrapper>
         )
     }
@@ -179,10 +197,21 @@ export function FRCMatchGambling() {
         )
     }
 
-    const Leaderboard = () => {
+    const MatchInfo = () => {
         return (
             <TileWrapper>
-                Leaderboard
+                <h1>Match Info</h1>
+                <h2>{match}</h2>
+            </TileWrapper>
+        )
+    }
+
+    // Do later
+    const Leaderboard = () => {
+
+        return (
+            <TileWrapper>
+                <h1>Leaderboard</h1>
             </TileWrapper>
         )
     }
@@ -194,6 +223,7 @@ export function FRCMatchGambling() {
             </TileWrapper>
         )
     }
+
     const Login = () => {
         const [ password, setPassword ] = useState("");
         const [ username, setUsername ] = useState("");
@@ -249,12 +279,25 @@ export function FRCMatchGambling() {
     console.log(user)
     
     // if (user === undefined || user === "" || user === null) {
+        // if (placeingBet) {
+        //     setPlacingBet(false);
+        // }
     //     return (
     //         <Wrapper>
     //             <Login />
     //         </Wrapper>
     //     )
     // }
+
+    if (placeingBet) {
+        return (
+            <Wrapper>
+                <Header />
+                <MatchInfo />
+                <BetPlacer />
+            </Wrapper>
+        )
+    }
 
     if (matchList.length === 0) {
         update();
