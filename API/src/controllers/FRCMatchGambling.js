@@ -271,3 +271,38 @@ exports.getBetResult = async (req, res) => {
         res.status(400).send('Error getting bet results');
     });
 }
+
+exports.getBetHistory = async (req, res) => {
+    googleSheetAPI.getSpreadSheetValues({
+        spreadsheetId: spreadsheetId,
+        sheetName: 'Bet History'
+    }).then((response) => {
+        const bets = response.data.values;
+        let userBets = [];
+        bets.forEach(bet => {
+            if (bet[0] == req.body.username) {
+                userBets.push(bet);
+            }
+        });
+        res.status(200).send(userBets);
+    }).catch((err) => {
+        res.status(400).send('Error getting bet history');
+    });
+}
+
+exports.getLeaderboard = async (req, res) => {
+    googleSheetAPI.getSpreadSheetValues({
+        spreadsheetId: spreadsheetId,
+        sheetName: 'UserData'
+    }).then((response) => {
+        const users = response.data.values;
+        let leaderboard = [];
+        users.forEach(user => {
+            leaderboard.push([user[1], user[3]]);
+        });
+        leaderboard.sort((a, b) => b[1] - a[1]);
+        res.status(200).send(leaderboard);
+    }).catch((err) => {
+        res.status(400).send('Error getting leaderboard');
+    });
+}

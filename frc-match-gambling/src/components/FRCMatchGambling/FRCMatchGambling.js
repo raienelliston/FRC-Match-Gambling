@@ -102,6 +102,8 @@ export function FRCMatchGambling() {
     const [bet, setBet] = useState({Amount: 1});
     const [user, setUser] = useState("");
     const [betData, setBetData] = useState(false);
+    const [leaderboard, setLeaderboard] = useState([]);
+    const [betHistory, setBetHistory] = useState([]);
     const betAmountInputRef = useRef(null);
 
     useEffect(() => {
@@ -151,16 +153,43 @@ export function FRCMatchGambling() {
             console.error('Failed to update bets:', err)
         );
 
-        fetch(api + '/balance', {
+        fetch(api + '/accounts/balance', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then(response => response.json()
+        ).then(data => {
+            console.log(data)
+            setBalance(data)
+        }).catch(err =>
+            console.error('Failed to fetch balance:', err)
+        );
+
+        fetch(api + '/leaderboard', {
             method: 'GET',
             headers: { 
                 'Content-Type': 'application/json' 
             }
         }).then(response => response.json()
-        ).then(data => 
-            setBalance(data)
-        ).catch(err => 
-            console.error('Failed to fetch balance:', err)
+        ).then(data => {
+            console.log(data)
+            setLeaderboard(data)
+        }).catch(err => 
+            console.error('Failed to fetch leaderboard:', err)
+        );
+
+        fetch(api + '/accounts/bethistory', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json' 
+            }
+        }).then(response => response.json()
+        ).then(data => {
+            console.log(data)
+            setBetHistory(data)
+        }).catch(err => 
+            console.error('Failed to fetch bet history:', err)
         );
     };
 
@@ -319,12 +348,30 @@ export function FRCMatchGambling() {
     const MatchBets = () => {
 
         if (betData === false) {
+
+            const BetHistory = () => {
+                const betHistoryTable = betHistory.map(bet => {
+                    return (
+                        <MatchScrollItem key={bet[0]}>
+                            <div>{bet[0]}</div>
+                            <div>${bet[1]}</div>
+                            <div>{Capitalize(bet[3]) + " Alliance"}</div>
+                            <div>{bet[4]}</div>
+                        </MatchScrollItem>
+                    );
+                });
+            }
+
             return (
                 <TileWrapper>
                     <div>Bet History</div>
+                    <MatchScrollWrapper>
+                        <BetHistory />
+                    </MatchScrollWrapper>
                 </TileWrapper>
             );
         }
+        
         console.log(betData)
 
         return (
@@ -336,9 +383,22 @@ export function FRCMatchGambling() {
     };
 
     const Leaderboard = () => {
+
+        const leaderboardTable = leaderboard.map(user => {
+            return (
+                <MatchScrollItem key={user[0]}>
+                    <div>{user[0]}</div>
+                    <div>${user[1]}</div>
+                </MatchScrollItem>
+            );
+        });
+
         return (
             <TileWrapper>
                 <h1>Leaderboard</h1>
+                <MatchScrollWrapper>
+                    {leaderboardTable}
+                </MatchScrollWrapper>
             </TileWrapper>
         );
     };
