@@ -42,7 +42,7 @@ template = [
 const spreadsheetId = '1aWICfWZeuWS2pt_rL0ghrLDN75VqYjqK91IGZ4L9raY';
 const eventKey = process.env.EVENT_KEY;
 
-function updateBets() {
+exports.updateBets = (req, res) => {
     console.log('Updating bets')
     googleSheetAPI.getSpreadSheetValues({
         spreadsheetId: spreadsheetId,

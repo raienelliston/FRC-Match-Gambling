@@ -16,7 +16,7 @@ const Wrapper = styled.div`
 
 const HeaderWrapper = styled.div`
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
     height: 10vh;
@@ -24,13 +24,30 @@ const HeaderWrapper = styled.div`
     background-color: #282c34;
 `;
 
-const BodyWrapper = styled.div`
+const TitleWrapper = styled.div`
+    flex-grow: 1;
     display: flex;
-    flex-direction: row;
-    align-items: center;
     justify-content: center;
+    font-size: 2em;
+`;
+
+const AccountInfoWrapper = styled.div`
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    margin-right: 10px;
+`;
+
+const BodyWrapper = styled.div`
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-rows: auto;
+    gap: 10px;
+    padding: 10px;
     height: 90vh;
     width: 100vw;
+    background-color: #282c34;
+    overflow-y: auto;
     background-color: #282c34;
 `;
 
@@ -43,6 +60,18 @@ const LoginWrapper = styled.div`
     width: 100vw;
     background-color: #282c34;
     z-index: 1;
+`;
+
+const TileWrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 20vh;
+    width: 20vw;
+    background-color: #282c34;
+    margin: 10px;
+    border: 1px solid white;
 `;
 
 export function FRCMatchGambling() {
@@ -67,7 +96,7 @@ export function FRCMatchGambling() {
                 setMatchList(data);
             }
         })
-        const betUpdate = fetch(api + '/bets', {
+        const betUpdate = fetch(api + '/updatebets', {
             method: 'GET',
             mode: 'cors',
             headers: {
@@ -117,43 +146,52 @@ export function FRCMatchGambling() {
     const Header = () => {
         console.log(balance)
         return (
-            <div>
-                <h1>FRC Match Gambling</h1>
-                
-            </div>
+            <HeaderWrapper>
+                <TitleWrapper>
+                    FRC Match Gambling
+                </TitleWrapper>
+                <AccountInfoWrapper>
+                    <div>
+                        User: {user}
+                    </div>
+                    <div>
+                        Balance: {balance}
+                    </div>
+                </AccountInfoWrapper>
+            </HeaderWrapper>
         )
     }
 
     const Matches = () => {
         
         return (
-            <div>
+            <TileWrapper>
                 Matches
-            </div>
+            </TileWrapper>
         )
     }
 
     const MatchBets = () => {
         return (
-            <div>
+            <TileWrapper>
                 Match Bets
-            </div>
+            </TileWrapper>
         )
     }
 
     const Leaderboard = () => {
         return (
-            <div>
+            <TileWrapper>
                 Leaderboard
-            </div>
+            </TileWrapper>
         )
     }
 
     const BetPlacer = () => {
         return (
-            <div>
+            <TileWrapper>
                 Bet Placer
-            </div>
+            </TileWrapper>
         )
     }
     const Login = () => {
@@ -210,13 +248,13 @@ export function FRCMatchGambling() {
     }
     console.log(user)
     
-    if (user === undefined || user === "" || user === null) {
-        return (
-            <Wrapper>
-                <Login />
-            </Wrapper>
-        )
-    }
+    // if (user === undefined || user === "" || user === null) {
+    //     return (
+    //         <Wrapper>
+    //             <Login />
+    //         </Wrapper>
+    //     )
+    // }
 
     if (matchList.length === 0) {
         update();
@@ -224,9 +262,7 @@ export function FRCMatchGambling() {
 
     return (
     <Wrapper>
-        <HeaderWrapper>
-            <Header />
-        </HeaderWrapper>
+        <Header />
         <BodyWrapper >
             <Matches />
             <MatchBets />
