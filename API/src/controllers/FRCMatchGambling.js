@@ -189,19 +189,38 @@ exports.giveBalance = async (req, res) => {
 }
 
 exports.placeBet = async (req, res) => {
-    const user = await getUserData(req.body.userId)
+    try {
+        const response = await googleSheetAPI.getSpreadSheetValues({
+            spreadsheetId: spreadsheetId,
+            sheetName: 'UserData'
+        });
 
-    googleSheetAPI.appendSpreadSheetValues({
-        spreadsheetId: spreadsheetId,
-        sheetName: 'Bet History',
-        values: [
-            [user[0], req.body.matchID, req.body.betAmount, req.body.betTeam, 'Pending']
-        ]
-    }).then((response) => {
+        const users = response.data.values;
+        let userName = null;
+
+        users.forEach(user => {
+            if (user[0] == req.body.userId) {
+                userName = user[1];
+            }
+        });
+
+        if (!userName) {
+            return res.status(400).send('User not found');
+        }
+
+        await googleSheetAPI.appendSpreadSheetValues({
+            spreadsheetId: spreadsheetId,
+            sheetName: 'Bet History',
+            values: [
+                [userName, req.body.matchID, req.body.betAmount, req.body.betTeam, 'Pending']
+            ]
+        });
+
         res.status(200).send('Bet placed');
-    }).catch((err) => {
+    } catch (err) {
+        console.error('Error placing bet:', err);
         res.status(400).send('Error placing bet');
-    });
+    }
 }
 
 exports.getEventMatches = async (req, res) => {
@@ -279,6 +298,24 @@ exports.getBetResult = async (req, res) => {
 }
 
 exports.getBetHistory = async (req, res) => {
+    const response = await googleSheetAPI.getSpreadSheetValues({
+        spreadsheetId: spreadsheetId,
+        sheetName: 'UserData'
+    });
+
+    const users = response.data.values;
+    let userName = null;
+
+    users.forEach(user => {
+        if (user[0] == req.body.userId) {
+            userName = user[1];
+        }
+    });
+
+    if (!userName) {
+        return res.status(400).send('User not found');
+    }
+
     googleSheetAPI.getSpreadSheetValues({
         spreadsheetId: spreadsheetId,
         sheetName: 'Bet History'
@@ -286,7 +323,7 @@ exports.getBetHistory = async (req, res) => {
         const bets = response.data.values;
         let userBets = [];
         bets.forEach(bet => {
-            if (bet[0] == req.body.username) {
+            if (bet[0] == user) {
                 userBets.push(bet);
             }
         });

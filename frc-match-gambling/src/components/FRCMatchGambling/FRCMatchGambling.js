@@ -183,7 +183,8 @@ export function FRCMatchGambling() {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json' 
-            }
+            },
+            body: JSON.stringify({ userId: user })
         }).then(response => response.json()
         ).then(data => {
             console.log(data)
@@ -473,7 +474,7 @@ export function FRCMatchGambling() {
                     <BetPlacer />
                     <MatchBets />
                 </BodySplitWrapper>
-                <Leaderboard />
+                {/* <Leaderboard /> */}
             </BodyWrapper>
         </Wrapper>
     );
