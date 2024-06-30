@@ -110,6 +110,11 @@ export function FRCMatchGambling() {
         }
     }, []);
 
+    const Capitalize = (str) => {
+        if (typeof str !== 'string') return str;
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
     const updateMatchInfo = (key) => {
         const matchInfo = fetch(api + '/matchbetinfo', {
             method: 'POST',
@@ -222,6 +227,43 @@ export function FRCMatchGambling() {
         if (betData === false) {
             betData = updateMatchInfo();
         }
+
+        // if (betData.actual_time !== null) {
+        if (false) {
+
+            const BetResult = () => {
+                const [betresult, setBetResult] = useState(null);
+                fetch(api + '/betresult', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ matchID: betData.key })
+                    }).then(response => response.json()
+                    ).then(data => {
+                        setBetResult(data);
+                    }).catch(err => console.error('Failed to get bet result:', err));
+
+                if (betresult === null) {
+                    return (
+                        <div>Waiting for result</div>
+                    );
+                }
+                
+                return (
+                    <div>Result: {betresult}</div>
+                );
+            }
+
+            return (
+                <TileWrapper>
+                    <h1>Match has already happened</h1>
+                    <div>Match: {betData.key.slice(betData.key.indexOf("_") + 1, betData.key.length)}</div>
+                    <div>Red Alliance: {betData.alliances.red.team_keys[0] + ", " + betData.alliances.red.team_keys[1] + ", " + betData.alliances.red.team_keys[2]}</div>
+                    <div>Blue Alliance: {betData.alliances.blue.team_keys[0] + ", " + betData.alliances.blue.team_keys[1] + ", " + betData.alliances.blue.team_keys[2]}</div>
+                    <div>Winner: {Capitalize(betData.result.winner === "tie" ? betData.result.winner : betData.result.winner) + " Alliance"}</div>
+                    <BetResult />
+                </TileWrapper>
+            );
+        }
         
         function placeBet() {
             fetch(api + '/placebet', {
@@ -235,20 +277,39 @@ export function FRCMatchGambling() {
             }).catch(err => console.error('Failed to place bet:', err));
         }
 
+        const AllianceSwitch = () => {
+            if (bet.team === undefined) setBet({ ...bet, team: 'red' });
+            console.log(bet.team);
+            return (
+                <div style={ {margin: "5px"} }>
+                    Alliance Red
+                    <Switch onChange={() => setBet({ ...bet, team: bet.team === 'red' ? 'blue' : 'red' })} 
+                        checked={bet.team === 'blue'}
+                        checkedIcon={false}
+                        uncheckedIcon={false}
+                        offColor="#ff0000"
+                        onColor="#0000ff"
+                    />
+                    Alliance Blue
+                </div>
+            );
+        }
 
         return (
             <TileWrapper>
                 <h1>Match Bets</h1>
                 <div>Match: {betData.key.slice(betData.key.indexOf("_") + 1, betData.key.length)}</div>
-                <div>Alliance Red: {betData.alliances.red.team_keys[0] + ", " + betData.alliances.red.team_keys[1] + ", " + betData.alliances.red.team_keys[2]}</div>
-                <div>Alliance Blue: {betData.alliances.blue.team_keys[0] + ", " + betData.alliances.blue.team_keys[1] + ", " + betData.alliances.blue.team_keys[2]}</div>
+                <div>Red Alliance: {betData.alliances.red.team_keys[0] + ", " + betData.alliances.red.team_keys[1] + ", " + betData.alliances.red.team_keys[2]}</div>
+                <div>Blue Alliance: {betData.alliances.blue.team_keys[0] + ", " + betData.alliances.blue.team_keys[1] + ", " + betData.alliances.blue.team_keys[2]}</div>
                 <input ref={betAmountInputRef} type="number" placeholder="Bet Amount" value={bet.amount} onChange={e => setBet({ ...bet, amount: e.target.value })} />
-                <Switch onChange={() => setBet({ ...bet, team: bet.team === 'red' ? 'blue' : 'red' })} checked={bet.team === 'red'} />
-                <div>Alliance Red Odds: {Number((betData.pred.red_win_prob).toFixed(2))}</div>
-                <div>Alliance Blue Odds: {Number((1 - (betData.pred.red_win_prob)).toFixed(2))}</div>
-                <div>Alliance Estimated Payout: {Number(bet * (betData.pred.red_win_prob).toFixed(2))}</div>
-                <div>Alliance Estimated Payout: {Number(bet * (1 - (betData.pred.red_win_prob)).toFixed(2))}</div>
-                <button onClick={() => placeBet}>Place Bet</button>
+                <AllianceSwitch />
+                <div>Red Alliance Odds: {Number((betData.pred.red_win_prob).toFixed(2))}</div>
+                <div>Blue Alliance Odds: {Number((1 - (betData.pred.red_win_prob)).toFixed(2))}</div>
+                <div>Red Alliance Estimated Payout: {Number(bet * (betData.pred.red_win_prob).toFixed(2))}</div>
+                <div>Blue Alliance Estimated Payout: {Number(bet * (1 - (betData.pred.red_win_prob)).toFixed(2))}</div>
+                <button onClick={() => placeBet}>
+                    Place Bet for {bet.amount} on {Capitalize(bet.team)} Alliance
+                </button>
             </TileWrapper>
         );
     };

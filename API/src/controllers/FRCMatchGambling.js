@@ -256,3 +256,18 @@ exports.getMatchBetInfo = async (req, res) => {
         res.status(400).send('Error getting match data');
     });
 }
+
+exports.getBetResult = async (req, res) => {
+    googleSheetAPI.getSpreadSheetValues({
+        spreadsheetId: spreadsheetId,
+        sheetName: 'Bet History'
+    }).then((response) => {
+        response.data.values.forEach(bet => {
+            if (bet[1] == req.body.matchID) {
+                res.status(200).send(bet[4]);
+            }
+        });
+    }).catch((err) => {
+        res.status(400).send('Error getting bet results');
+    });
+}

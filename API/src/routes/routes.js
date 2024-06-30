@@ -9,6 +9,7 @@ router.get('/updatebets', API.updateBets);
 router.get('/matches', API.getEventMatches);
 router.get('/matchdata', API.getMatchData);
 router.post('/matchbetinfo', API.getMatchBetInfo);
+router.post('/betresult', API.getBetResult);
 router.get('/teamdata', API.getTeamData);
 router.post('/accounts/create', API.createAccount);
 router.post('/accounts/login', API.login);
