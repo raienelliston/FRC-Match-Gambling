@@ -81,16 +81,20 @@ exports.updateBets = () => {
                             });
                         }
                         newBets.push([bet[0], bet[1], bet[2], bet[3], 'Complete']);
+                        console.log(newBets)
                     }
                 })
             }
     });
+    console.log(newBets)
     googleSheetAPI.updateSpreadSheetValues({
         spreadsheetId: spreadsheetId,
         sheetName: 'Bet History',
         range: 'A2:E',
         values: newBets
-    });
+    }).then((response) => {
+        console.log(response);
+    })
 });
                 
                             
