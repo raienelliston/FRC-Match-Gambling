@@ -81,15 +81,15 @@ async function getSpreadSheetValues({ spreadsheetId, sheetName }) {
   return res;
 }
 
-async function appendSpreadSheetValues({ spreadsheetId, sheetName, values }) {
+async function appendSpreadSheetValues({ spreadsheetId, sheetName, values, replace=false }) {
   const auth = await getAuthToken();
   const service = google.sheets({ version: 'v4', auth });
-
+  console.log("values: " + values)
   const res = await service.spreadsheets.values.append({
     spreadsheetId,
     range: sheetName,
     valueInputOption: 'USER_ENTERED',
-    insertDataOption: 'INSERT_ROWS',
+    insertDataOption: replace ? 'OVERWRITE' : 'INSERT_ROWS',
     resource: {
       values
     }

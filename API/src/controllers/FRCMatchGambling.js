@@ -44,12 +44,12 @@ template = [
 const spreadsheetId = '1aWICfWZeuWS2pt_rL0ghrLDN75VqYjqK91IGZ4L9raY';
 const eventKey = process.env.EVENT_KEY;
 
-exports.updateBets = () => {
+exports.updateBets = async () => {
     console.log('Updating bets')
 
     const newBets = [];
 
-    const userData = googleSheetAPI.getSpreadSheetValues({
+    const userData = await googleSheetAPI.getSpreadSheetValues({
         spreadsheetId: spreadsheetId,
         sheetName: 'UserData'
     }).then((response) => {
@@ -57,91 +57,56 @@ exports.updateBets = () => {
         return users;
     });
 
-    googleSheetAPI.getSpreadSheetValues({
+    const bets = await googleSheetAPI.getSpreadSheetValues({
         spreadsheetId: spreadsheetId,
         sheetName: 'Bet History'
     }).then((response) => {
         const bets = response.data.values;
-        bets.forEach(bet => {
-            if (bet[4] == 'Pending') {
-                console.log("bet: " + bet[1])
-                statbotics.getMatchData( {
-                    matchKey: bet[1]
-                }).then((response) => {
-                    if (response.result.winner !== "blue" && response.result.winner !== "red") {
-                        newBets.push(bet);
-                    } else {
-                        if (response.result.winner == bet[3]) {
-                            userData.then((users) => {
-                                users.forEach(user => {
-                                    if (user[0] == bet[0]) {
-                                        const newBalance = parseInt(user[3]) + parseInt(bet[2] * (1 / (bet[3] == "red" ? response.pred.red_win_prob : (1 - response.pred.red_win_prob))));
-                                    }
-                                });
+        return bets;
+    });
+
+    for (const bet of bets) {
+        if (bet[4] == 'Pending') {
+            console.log("bet: " + bet[1])
+
+            const matchData = await statbotics.getMatchData( {
+                matchKey: bet[1]
+            }).then((response) => {
+                return response;
+            });
+
+            if (matchData.result.winner !== "blue" && matchData.result.winner !== "red") {
+                newBets.push(bet);
+            } else {
+                if (matchData.result.winner == bet[3]) {
+                    for (const user of userData) {
+                        if (user[0] == bet[0]) {
+                            const newBalance = parseInt(user[3]) + parseInt(bet[2] * (1 / (bet[3] == "red" ? matchData.pred.red_win_prob : (1 - matchData.pred.red_win_prob))));
+                            googleSheetAPI.updateSpreadSheetValues({
+                                spreadsheetId: spreadsheetId,
+                                sheetName: 'UserData',
+                                range: `D${userData.indexOf(user) + 2}`,
+                                values: [[newBalance]]
                             });
                         }
-                        newBets.push([bet[0], bet[1], bet[2], bet[3], 'Complete']);
-                        console.log(newBets)
                     }
-                })
+                }
+                newBets.push([bet[0], bet[1], bet[2], bet[3], 'Complete']);
+                console.log(newBets)
             }
-    });
-    console.log(newBets)
+        }
+    }
+
     googleSheetAPI.updateSpreadSheetValues({
         spreadsheetId: spreadsheetId,
         sheetName: 'Bet History',
-        range: 'A2:E',
-        values: newBets
+        values: [[], ...newBets],
+        replace: true
     }).then((response) => {
         console.log(response);
-    })
-});
-                
-                            
-
-    // googleSheetAPI.getSpreadSheetValues({
-    //     spreadsheetId: spreadsheetId,
-    //     sheetName: 'Bet History'
-    // }).then((response) => {
-    //     const bets = response.data.values;
-    //     console.log("Bets" + bets)
-    //     bets.forEach(bet => {
-    //         if (bet[4] == 'Pending') {
-    //             TBA.getMatchData( {
-    //                 matchKey: bet[1]
-    //             }).then((response) => {
-    //                 if (response.winning_alliance != null) {
-    //                     if (response.winning_alliance == bet[3]) {
-    //                         googleSheetAPI.getSpreadSheetValues({
-    //                             spreadsheetId: spreadsheetId,
-    //                             sheetName: 'UserData'
-    //                         }).then((response) => {
-    //                             const users = response.data.values;
-    //                             users.forEach(user => {
-    //                                 if (user[0] == bet[0]) {
-    //                                     googleSheetAPI.updateSpreadSheetValues({
-    //                                         spreadsheetId: spreadsheetId,
-    //                                         sheetName: 'UserData',
-    //                                         range: `B${users.indexOf(user) + 2}`,
-    //                                         values: [[parseInt(user[1]) + parseInt(bet[2])]]
-    //                                     });
-    //                                 }
-    //                             });
-    //                         });
-    //                     }
-    //                     googleSheetAPI.updateSpreadSheetValues({
-    //                         spreadsheetId: spreadsheetId,
-    //                         sheetName: 'Bet History',
-    //                         range: `E${bets.indexOf(bet) + 2}`,
-    //                         values: [['Complete']]
-    //                     });
-    //                 }
-    //             });
-    //         }
-    //     });
-    // });
+    });
 }
-
+                
 const getUserData = async () => {
     const data = await googleSheetAPI.getSpreadSheetValues({
         spreadsheetId: spreadsheetId,
@@ -195,7 +160,10 @@ exports.createAccount = async (req, res) => {
     }).then((response) => {
         console.log(response);
         console.log(id)
-        res.status(200).send(JSON.stringify(id));
+        res.status(200).send(JSON.stringify({
+            id: id,
+            username: req.body.username,
+        }));
     }).catch((err) => {
         res.status(400).send('Error creating account');
     });
@@ -203,7 +171,6 @@ exports.createAccount = async (req, res) => {
 
 exports.login = async (req, res) => {
     let found = false;
-    console.log(req.body)
     googleSheetAPI.getSpreadSheetValues({
         spreadsheetId: spreadsheetId,
         sheetName: 'UserData'
@@ -211,16 +178,20 @@ exports.login = async (req, res) => {
         const users = response.data.values;
         users.forEach(user => {
             if (user[1] == req.body.username && user[2] == req.body.password) {
-                res.status(200).send(user[0]);
                 found = true;
+                res.status(200).send({
+                    id: user[0],
+                    username: user[1]
+                });
             }
         });
+    }).then(() => { 
+        if (!found) {
+            res.status(404).send('User not found');
+        }
     }).catch((err) => {
         res.status(400).send('Error logging in');
-    });
-    if (!found) {
-        res.status(404).send('User not found');
-    }
+    })
 }
 
 exports.giveBalance = async (req, res) => {
@@ -246,38 +217,41 @@ exports.giveBalance = async (req, res) => {
 }
 
 exports.placeBet = async (req, res) => {
-    try {
-        const response = await googleSheetAPI.getSpreadSheetValues({
-            spreadsheetId: spreadsheetId,
-            sheetName: 'UserData'
-        });
-
-        const users = response.data.values;
-        let userName = null;
-
-        users.forEach(user => {
-            if (user[0] == req.body.userId) {
-                userName = user[1];
-            }
-        });
-
-        if (!userName) {
-            return res.status(400).send('User not found');
-        }
-
-        await googleSheetAPI.appendSpreadSheetValues({
-            spreadsheetId: spreadsheetId,
-            sheetName: 'Bet History',
-            values: [
-                [userName, req.body.matchID, req.body.betAmount, req.body.betTeam, 'Pending']
-            ]
-        });
-
-        res.status(200).send('Bet placed');
-    } catch (err) {
-        console.error('Error placing bet:', err);
+    const response = await googleSheetAPI.getSpreadSheetValues({
+        spreadsheetId: spreadsheetId,
+        sheetName: 'UserData'
+    }).then((response) => {
+        return response;
+    }).catch((err) => {
+        console.log(err);
         res.status(400).send('Error placing bet');
+    });
+
+    const users = response.data.values;
+    let userName = null;
+
+    users.forEach(user => {
+        if (user[0] == req.body.userId) {
+            userName = user[1];
+        }
+    });
+
+    if (!userName) {
+        return res.status(400).send('User not found');
     }
+
+    await googleSheetAPI.appendSpreadSheetValues({
+        spreadsheetId: spreadsheetId,
+        sheetName: 'Bet History',
+        values: [
+            [userName, req.body.matchID, req.body.betAmount, req.body.betTeam, 'Pending']
+        ]
+    }).then((response) => {
+        console.log(response);
+    }).catch((err) => {
+        console.log(err);
+        res.status(400).send('Error placing bet');
+    });
 }
 
 exports.getEventMatches = async (req, res) => {

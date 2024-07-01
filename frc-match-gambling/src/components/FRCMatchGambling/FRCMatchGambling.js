@@ -100,7 +100,8 @@ export function FRCMatchGambling() {
     const [balance, setBalance] = useState(0);
     const [matchList, setMatchList] = useState([]);
     const [bet, setBet] = useState({Amount: 1});
-    const [user, setUser] = useState("");
+    const [userId, setUserId] = useState("");
+    const [username, setUsername] = useState("");
     const [betData, setBetData] = useState(false);
     const [leaderboard, setLeaderboard] = useState([]);
     const [betHistory, setBetHistory] = useState([]);
@@ -182,7 +183,7 @@ export function FRCMatchGambling() {
             headers: { 
                 'Content-Type': 'application/json' 
             },
-            body: JSON.stringify({ userId: user })
+            body: JSON.stringify({ userId: userId })
         }).then(response => response.json()
         ).then(data => {
             console.log(data)
@@ -198,7 +199,7 @@ export function FRCMatchGambling() {
         <HeaderWrapper>
             <TitleWrapper>FRC Match Gambling</TitleWrapper>
             <AccountInfoWrapper>
-                <div>User: {user}</div>
+                <div>User: {userId}</div>
                 <div>Balance: ${balance}</div>
             </AccountInfoWrapper>
         </HeaderWrapper>
@@ -301,7 +302,7 @@ export function FRCMatchGambling() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    userId: user,
+                    userId: userId,
                     matchID: betData.key,
                     betAmount: bet.amount,
                     betTeam: bet.team
@@ -379,10 +380,24 @@ export function FRCMatchGambling() {
 
         console.log(betData)
 
+        if (betData.actual_time !== null) {
+            return (
+                <TileWrapper>
+                    <h1>Match {betData.key.slice(betData.key.indexOf("_") + 1, betData.key.length)}</h1>
+                    <div style={ {flexDirection: "row"}}>
+                        <div style={ {color: "red"} }>{betData.alliances.red.team_keys[0] + ", " + betData.alliances.red.team_keys[1] + ", " + betData.alliances.red.team_keys[2]}</div>
+                        <div style={ {color: "blue"} }>{betData.alliances.blue.team_keys[0] + ", " + betData.alliances.blue.team_keys[1] + ", " + betData.alliances.blue.team_keys[2]}</div>
+                    </div>
+                    <div>Winner: {Capitalize(betData.result.winner === "tie" ? betData.result.winner : betData.result.winner) + " Alliance"}</div>
+                </TileWrapper>
+            );
+        }
+
         return (
             <TileWrapper>
                 <h1>Match Info</h1>
                 <div>Match: {betData.key.slice(betData.key.indexOf("_") + 1, betData.key.length)}</div>
+                <div></div>
             </TileWrapper>
         );
     };
@@ -421,8 +436,10 @@ export function FRCMatchGambling() {
             })
                 .then(response => response.json())
                 .then(data => {
-                    setUser(data);
-                    localStorage.setItem('user', data);
+                    setUserId(data.id);
+                    setUsername(data.username)
+                    localStorage.setItem('user', data.id);
+                    localStorage.setItem('username', data.username);
                 })
                 .catch(err => console.error('Failed to create account:', err));
         };
@@ -435,8 +452,10 @@ export function FRCMatchGambling() {
             })
                 .then(response => response.json())
                 .then(data => {
-                    setUser(data);
-                    localStorage.setItem('user', data);
+                    setUserId(data.id);
+                    setUsername(data.username);
+                    localStorage.setItem('userId', JSON.stringify(data));
+                    localStorage.setItem('username', JSON.stringify(data.username));
                 })
                 .catch(err => console.error('Failed to log in:', err));
         };
@@ -452,17 +471,18 @@ export function FRCMatchGambling() {
         );
     };
 
-    // if (user === "" && localStorage.getItem('user')) {
-    //     setUser(localStorage.getItem('user'));
-    // }
+    if (userId === "" && localStorage.getItem('userId')) {
+        setUserId(localStorage.getItem('userId'));
+        setUsername(localStorage.getItem('username'));
+    }
 
-    // if (!user) {
-    //     return (
-    //         <Wrapper>
-    //             <Login />
-    //         </Wrapper>
-    //     );
-    // }
+    if (!userId) {
+        return (
+            <Wrapper>
+                <Login />
+            </Wrapper>
+        );
+    }
 
     return (
         <Wrapper>
