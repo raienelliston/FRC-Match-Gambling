@@ -105,6 +105,7 @@ export function FRCMatchGambling() {
     const [leaderboard, setLeaderboard] = useState([]);
     const [betHistory, setBetHistory] = useState([]);
     const betAmountInputRef = useRef(null);
+    const [changed, setChanged] = useState(false);
 
     useEffect(() => {
         if (matchList.length === 0) {
@@ -123,8 +124,11 @@ export function FRCMatchGambling() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ matchKey: key })
         }).then(response => response.json()
-        ).then(data => setBetData(data)
-        ).catch(err => console.error('Failed to fetch match:', err))
+        ).then(data => {
+            if (data !== betData) {
+                setBetData(data)
+            }
+        }).catch(err => console.error('Failed to fetch match:', err))
         return matchInfo;
     }
 
@@ -135,36 +139,40 @@ export function FRCMatchGambling() {
                 'Content-Type': 'application/json' 
             }
         }).then(response => response.json()
-        ).then(data => 
-            setMatchList(data)
-        ).catch(err => 
+        ).then(data => {
+            if (data !== matchList) {
+                setMatchList(data)
+            }
+    }).catch(err => 
             console.error('Failed to fetch matches:', err)
         );
 
-        fetch(api + '/updatebets', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        }).then(response => response.json()
-        ).then(data =>
-            console.log(data)
-        ).catch(err =>
-            console.error('Failed to update bets:', err)
-        );
+        // fetch(api + '/updatebets', {
+        //     method: 'GET',
+        //     headers: {
+        //         'Content-Type': 'application/json'
+        //     }
+        // }).then(response => response.json()
+        // ).then(data =>
+        //     console.log(data)
+        // ).catch(err =>
+        //     console.error('Failed to update bets:', err)
+        // );
 
-        fetch(api + '/accounts/balance', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        }).then(response => response.json()
-        ).then(data => {
-            console.log(data)
-            setBalance(data)
-        }).catch(err =>
-            console.error('Failed to fetch balance:', err)
-        );
+        // fetch(api + '/accounts/balance', {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json'
+        //     }
+        // }).then(response => response.json()
+        // ).then(data => {
+        //     console.log(data)
+        //     if (data !== balance) {
+        //         setBalance(data)
+        //     }
+        // }).catch(err =>
+        //     console.error('Failed to fetch balance:', err)
+        // );
 
         fetch(api + '/leaderboard', {
             method: 'GET',
@@ -174,7 +182,9 @@ export function FRCMatchGambling() {
         }).then(response => response.json()
         ).then(data => {
             console.log(data)
-            setLeaderboard(data)
+            if (data !== leaderboard) {
+                setLeaderboard(data)
+            }
         }).catch(err => 
             console.error('Failed to fetch leaderboard:', err)
         );
@@ -188,7 +198,9 @@ export function FRCMatchGambling() {
         }).then(response => response.json()
         ).then(data => {
             console.log(data)
-            setBetHistory(data)
+            if (data !== betHistory) {
+                setBetHistory(data)
+            }
         }).catch(err => 
             console.error('Failed to fetch bet history:', err)
         );
@@ -350,8 +362,6 @@ export function FRCMatchGambling() {
         );
     };
 
-    //7 9 4 1
-
     const MatchBets = () => {
 
         if (betData === false) {
@@ -453,9 +463,10 @@ export function FRCMatchGambling() {
             </LoginWrapper>
         );
     };
-    if (user === "" && localStorage.getItem('user')) {
-        setUser(localStorage.getItem('user'));
-    }
+
+    // if (user === "" && localStorage.getItem('user')) {
+    //     setUser(localStorage.getItem('user'));
+    // }
 
     if (!user) {
         return (
@@ -474,7 +485,7 @@ export function FRCMatchGambling() {
                     <BetPlacer />
                     <MatchBets />
                 </BodySplitWrapper>
-                {/* <Leaderboard /> */}
+                <Leaderboard />
             </BodyWrapper>
         </Wrapper>
     );
