@@ -1,2 +1,2 @@
 # FRC-Match-Gambling
-FRC Match Gambling Website that records the results and tracks gamblers total in a Google Spreadsheet
+FRC Match Gambling Website that records the results and tracks gamblers total in a Google Spreadsheet. Allows for account creation and login and auto updates the spreadsheet with the results of the matches periodically, along with the gamblers total.
