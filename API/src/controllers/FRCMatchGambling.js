@@ -163,6 +163,7 @@ exports.createAccount = async (req, res) => {
         res.status(200).send(JSON.stringify({
             id: id,
             username: req.body.username,
+            balance: 0
         }));
     }).catch((err) => {
         res.status(400).send('Error creating account');
@@ -181,7 +182,8 @@ exports.login = async (req, res) => {
                 found = true;
                 res.status(200).send({
                     id: user[0],
-                    username: user[1]
+                    username: user[1],
+                    balance: user[3]
                 });
             }
         });
