@@ -456,13 +456,13 @@ export function FRCMatchGambling() {
     //     setUser(localStorage.getItem('user'));
     // }
 
-    if (!user) {
-        return (
-            <Wrapper>
-                <Login />
-            </Wrapper>
-        );
-    }
+    // if (!user) {
+    //     return (
+    //         <Wrapper>
+    //             <Login />
+    //         </Wrapper>
+    //     );
+    // }
 
     return (
         <Wrapper>

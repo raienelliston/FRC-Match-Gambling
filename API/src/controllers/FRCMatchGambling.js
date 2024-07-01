@@ -5,6 +5,7 @@ const statbotics = require('../APIs/statboticsAPI');
 const TBA = require('../APIs/TBAApi');
 const { google } = require('googleapis');
 const { v4: uuidv4 } = require('uuid');
+const { stat } = require('fs');
 require('dotenv').config();
 
 template = [
@@ -46,6 +47,8 @@ const eventKey = process.env.EVENT_KEY;
 exports.updateBets = () => {
     console.log('Updating bets')
 
+    const newBets = [];
+
     const userData = googleSheetAPI.getSpreadSheetValues({
         spreadsheetId: spreadsheetId,
         sheetName: 'UserData'
@@ -58,49 +61,81 @@ exports.updateBets = () => {
         spreadsheetId: spreadsheetId,
         sheetName: 'Bet History'
     }).then((response) => {
-        
-
-    googleSheetAPI.getSpreadSheetValues({
-        spreadsheetId: spreadsheetId,
-        sheetName: 'Bet History'
-    }).then((response) => {
         const bets = response.data.values;
-        console.log("Bets" + bets)
         bets.forEach(bet => {
             if (bet[4] == 'Pending') {
-                TBA.getMatchData( {
+                console.log("bet: " + bet[1])
+                statbotics.getMatchData( {
                     matchKey: bet[1]
                 }).then((response) => {
-                    if (response.winning_alliance != null) {
-                        if (response.winning_alliance == bet[3]) {
-                            googleSheetAPI.getSpreadSheetValues({
-                                spreadsheetId: spreadsheetId,
-                                sheetName: 'UserData'
-                            }).then((response) => {
-                                const users = response.data.values;
+                    if (response.result.winner !== "blue" && response.result.winner !== "red") {
+                        newBets.push(bet);
+                    } else {
+                        if (response.result.winner == bet[3]) {
+                            userData.then((users) => {
                                 users.forEach(user => {
                                     if (user[0] == bet[0]) {
-                                        googleSheetAPI.updateSpreadSheetValues({
-                                            spreadsheetId: spreadsheetId,
-                                            sheetName: 'UserData',
-                                            range: `B${users.indexOf(user) + 2}`,
-                                            values: [[parseInt(user[1]) + parseInt(bet[2])]]
-                                        });
+                                        const newBalance = parseInt(user[3]) + parseInt(bet[2] * (1 / (bet[3] == "red" ? response.pred.red_win_prob : (1 - response.pred.red_win_prob))));
                                     }
                                 });
                             });
                         }
-                        googleSheetAPI.updateSpreadSheetValues({
-                            spreadsheetId: spreadsheetId,
-                            sheetName: 'Bet History',
-                            range: `E${bets.indexOf(bet) + 2}`,
-                            values: [['Complete']]
-                        });
+                        newBets.push([bet[0], bet[1], bet[2], bet[3], 'Complete']);
                     }
-                });
+                })
             }
-        });
     });
+    googleSheetAPI.updateSpreadSheetValues({
+        spreadsheetId: spreadsheetId,
+        sheetName: 'Bet History',
+        range: 'A2:E',
+        values: newBets
+    });
+});
+                
+                            
+
+    // googleSheetAPI.getSpreadSheetValues({
+    //     spreadsheetId: spreadsheetId,
+    //     sheetName: 'Bet History'
+    // }).then((response) => {
+    //     const bets = response.data.values;
+    //     console.log("Bets" + bets)
+    //     bets.forEach(bet => {
+    //         if (bet[4] == 'Pending') {
+    //             TBA.getMatchData( {
+    //                 matchKey: bet[1]
+    //             }).then((response) => {
+    //                 if (response.winning_alliance != null) {
+    //                     if (response.winning_alliance == bet[3]) {
+    //                         googleSheetAPI.getSpreadSheetValues({
+    //                             spreadsheetId: spreadsheetId,
+    //                             sheetName: 'UserData'
+    //                         }).then((response) => {
+    //                             const users = response.data.values;
+    //                             users.forEach(user => {
+    //                                 if (user[0] == bet[0]) {
+    //                                     googleSheetAPI.updateSpreadSheetValues({
+    //                                         spreadsheetId: spreadsheetId,
+    //                                         sheetName: 'UserData',
+    //                                         range: `B${users.indexOf(user) + 2}`,
+    //                                         values: [[parseInt(user[1]) + parseInt(bet[2])]]
+    //                                     });
+    //                                 }
+    //                             });
+    //                         });
+    //                     }
+    //                     googleSheetAPI.updateSpreadSheetValues({
+    //                         spreadsheetId: spreadsheetId,
+    //                         sheetName: 'Bet History',
+    //                         range: `E${bets.indexOf(bet) + 2}`,
+    //                         values: [['Complete']]
+    //                     });
+    //                 }
+    //             });
+    //         }
+    //     });
+    // });
 }
 
 const getUserData = async () => {
