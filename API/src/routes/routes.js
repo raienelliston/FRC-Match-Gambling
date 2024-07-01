@@ -4,7 +4,6 @@ const API = require('../controllers/FRCMatchGambling');
 
 router.get('/status', API.status);
 router.post('/bet', API.placeBet);
-router.get('/updatebets', API.updateBets);
 router.get('/matches', API.getEventMatches);
 router.get('/matchdata', API.getMatchData);
 router.post('/matchbetinfo', API.getMatchBetInfo);

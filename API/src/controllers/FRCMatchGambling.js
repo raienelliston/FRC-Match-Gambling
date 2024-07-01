@@ -43,13 +43,29 @@ template = [
 const spreadsheetId = '1aWICfWZeuWS2pt_rL0ghrLDN75VqYjqK91IGZ4L9raY';
 const eventKey = process.env.EVENT_KEY;
 
-exports.updateBets = (req, res) => {
+exports.updateBets = () => {
     console.log('Updating bets')
+
+    const userData = googleSheetAPI.getSpreadSheetValues({
+        spreadsheetId: spreadsheetId,
+        sheetName: 'UserData'
+    }).then((response) => {
+        const users = response.data.values;
+        return users;
+    });
+
+    googleSheetAPI.getSpreadSheetValues({
+        spreadsheetId: spreadsheetId,
+        sheetName: 'Bet History'
+    }).then((response) => {
+        
+
     googleSheetAPI.getSpreadSheetValues({
         spreadsheetId: spreadsheetId,
         sheetName: 'Bet History'
     }).then((response) => {
         const bets = response.data.values;
+        console.log("Bets" + bets)
         bets.forEach(bet => {
             if (bet[4] == 'Pending') {
                 TBA.getMatchData( {
@@ -84,7 +100,6 @@ exports.updateBets = (req, res) => {
                 });
             }
         });
-        res.status(200).send('Bets updated');
     });
 }
 
@@ -97,7 +112,10 @@ const getUserData = async () => {
 }
 
 //DEV ONLY, REMOVE IN PRODUCTION
-exports.setuptemplate = async (req, res) => {
+exports.checkSheet = async () => {
+    if (await googleSheetAPI.getSpreadSheetValues({spreadsheetId: spreadsheetId, sheetName: 'UserData'})) {
+        return;
+    }
     googleSheetAPI.createSpreadSheetTemplate( {
         spreadsheetId: spreadsheetId,
         values: template

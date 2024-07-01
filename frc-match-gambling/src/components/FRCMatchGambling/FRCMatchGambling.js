@@ -147,32 +147,20 @@ export function FRCMatchGambling() {
             console.error('Failed to fetch matches:', err)
         );
 
-        // fetch(api + '/updatebets', {
-        //     method: 'GET',
-        //     headers: {
-        //         'Content-Type': 'application/json'
-        //     }
-        // }).then(response => response.json()
-        // ).then(data =>
-        //     console.log(data)
-        // ).catch(err =>
-        //     console.error('Failed to update bets:', err)
-        // );
-
-        // fetch(api + '/accounts/balance', {
-        //     method: 'POST',
-        //     headers: {
-        //         'Content-Type': 'application/json'
-        //     }
-        // }).then(response => response.json()
-        // ).then(data => {
-        //     console.log(data)
-        //     if (data !== balance) {
-        //         setBalance(data)
-        //     }
-        // }).catch(err =>
-        //     console.error('Failed to fetch balance:', err)
-        // );
+        fetch(api + '/accounts/balance', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then(response => response.json()
+        ).then(data => {
+            console.log(data)
+            if (data !== balance) {
+                setBalance(data)
+            }
+        }).catch(err =>
+            console.error('Failed to fetch balance:', err)
+        );
 
         fetch(api + '/leaderboard', {
             method: 'GET',
